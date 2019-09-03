@@ -185,7 +185,7 @@ class Search
         Assert::assertEquals(
             0,
             $this->store->countInHistory(),
-            "Failed asserting that nothing was synced to search index.",
+            "Failed asserting that nothing was synced to search index."
         );
 
         return $this;
@@ -196,7 +196,7 @@ class Search
         Assert::assertEquals(
             0,
             $this->store->countInHistory($index),
-            "Failed asserting that nothing was synced to '{$index}' search index.",
+            "Failed asserting that nothing was synced to '{$index}' search index."
         );
 
         return $this;
