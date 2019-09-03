@@ -49,7 +49,7 @@ class ArrayEngine extends Engine
 
             $this->store->set($model->searchableAs(), $model->getScoutKey(), array_merge(
                 $searchableData,
-                $model->scoutMetadata(),
+                $model->scoutMetadata()
             ));
         });
     }
