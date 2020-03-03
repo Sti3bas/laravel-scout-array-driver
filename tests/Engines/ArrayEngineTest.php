@@ -182,7 +182,7 @@ class ArrayEngineTest extends TestCase
             'scoutKey' => 234,
         ];
 
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01 12:00:00', '__soft_deleted' => 1], $engine->search($builder1)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01T12:00:00.000000Z', '__soft_deleted' => 1], $engine->search($builder1)['hits'][0]);
         $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234, '__soft_deleted' => 0], $engine->search($builder2)['hits'][0]);
     }
 
@@ -207,7 +207,7 @@ class ArrayEngineTest extends TestCase
             'scoutKey' => 234,
         ];
 
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01 12:00:00'], $engine->search($builder1)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01T12:00:00.000000Z'], $engine->search($builder1)['hits'][0]);
         $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234], $engine->search($builder2)['hits'][0]);
     }
 
