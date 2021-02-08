@@ -3,6 +3,7 @@
 namespace Sti3bas\ScoutArray\Tests\Engines;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use Laravel\Scout\Builder;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,11 @@ use Sti3bas\ScoutArray\Tests\Fixtures\SoftDeletableSearchableModel;
 
 class ArrayEngineTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        Config::shouldReceive('get')->with('scout.after_commit', Mockery::any())->andReturn(false);
+    }
+
     /** @test */
     public function it_can_search_for_the_records()
     {
