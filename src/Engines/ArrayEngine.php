@@ -4,10 +4,12 @@ namespace Sti3bas\ScoutArray\Engines;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
+use Sti3bas\ScoutArray\ArrayStore;
 
 class ArrayEngine extends Engine
 {
@@ -126,7 +128,7 @@ class ArrayEngine extends Engine
                 return !$builder->query || stripos($value, $builder->query) !== false;
             }));
         }, true);
-        
+
         $matches = Collection::make($matches);
 
         return [
@@ -177,7 +179,7 @@ class ArrayEngine extends Engine
         if (count($results['hits']) === 0) {
             return $model->newCollection();
         }
-        
+
         $objectIds = Collection::make($results['hits'])->pluck('objectID')->values()->all();
         $objectIdPositions = array_flip($objectIds);
 
@@ -189,7 +191,7 @@ class ArrayEngine extends Engine
             })->values();
     }
 
-    
+
     /**
      * Get the total count from a raw result returned by the engine.
      *
@@ -222,5 +224,35 @@ class ArrayEngine extends Engine
     protected function usesSoftDelete($model)
     {
         return in_array(SoftDeletes::class, class_uses_recursive($model));
+    }
+
+    public function lazyMap(Builder $builder, $results, $model)
+    {
+        if (count($results['hits']) === 0) {
+            return LazyCollection::make($model->newCollection());
+        }
+
+        $objectIds = Collection::make($results['hits'])->pluck('objectID')->values()->all();
+        $objectIdPositions = array_flip($objectIds);
+
+        return $model
+            ->getScoutModelsByIds($builder, $objectIds)
+            ->cursor()
+            ->filter(function ($model) use ($objectIds) {
+                return in_array($model->getScoutKey(), $objectIds);
+            })->sortBy(function ($model) use ($objectIdPositions) {
+                return $objectIdPositions[$model->getScoutKey()];
+            })->values();
+
+    }
+
+    public function createIndex($name, array $options = [])
+    {
+        $this->store->flush($name);
+    }
+
+    public function deleteIndex($name)
+    {
+        $this->store->flush($name);
     }
 }
