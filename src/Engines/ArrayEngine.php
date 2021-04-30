@@ -191,6 +191,32 @@ class ArrayEngine extends Engine
             })->values();
     }
 
+    /**
+     * Map the given results to instances of the given model via a lazy collection.
+     *
+     * @param  \Laravel\Scout\Builder  $builder
+     * @param  mixed  $results
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return \Illuminate\Support\LazyCollection
+     */
+    public function lazyMap(Builder $builder, $results, $model)
+    {
+        if (count($results['hits']) === 0) {
+            return LazyCollection::make($model->newCollection());
+        }
+
+        $objectIds = Collection::make($results['hits'])->pluck('objectID')->values()->all();
+        $objectIdPositions = array_flip($objectIds);
+
+        return $model->queryScoutModelsByIds(
+            $builder,
+            $objectIds
+        )->cursor()->filter(function ($model) use ($objectIds) {
+            return in_array($model->getScoutKey(), $objectIds);
+        })->sortBy(function ($model) use ($objectIdPositions) {
+            return $objectIdPositions[$model->getScoutKey()];
+        })->values();
+    }
 
     /**
      * Get the total count from a raw result returned by the engine.
@@ -224,26 +250,6 @@ class ArrayEngine extends Engine
     protected function usesSoftDelete($model)
     {
         return in_array(SoftDeletes::class, class_uses_recursive($model));
-    }
-
-    public function lazyMap(Builder $builder, $results, $model)
-    {
-        if (count($results['hits']) === 0) {
-            return LazyCollection::make($model->newCollection());
-        }
-
-        $objectIds = Collection::make($results['hits'])->pluck('objectID')->values()->all();
-        $objectIdPositions = array_flip($objectIds);
-
-        return $model
-            ->getScoutModelsByIds($builder, $objectIds)
-            ->cursor()
-            ->filter(function ($model) use ($objectIds) {
-                return in_array($model->getScoutKey(), $objectIds);
-            })->sortBy(function ($model) use ($objectIdPositions) {
-                return $objectIdPositions[$model->getScoutKey()];
-            })->values();
-
     }
 
     public function createIndex($name, array $options = [])

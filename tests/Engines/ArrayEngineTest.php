@@ -2,15 +2,16 @@
 
 namespace Sti3bas\ScoutArray\Tests\Engines;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Config;
-use Laravel\Scout\Builder;
 use Mockery;
+use Laravel\Scout\Builder;
 use PHPUnit\Framework\TestCase;
+use Illuminate\Support\Collection;
 use Sti3bas\ScoutArray\ArrayStore;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\LazyCollection;
 use Sti3bas\ScoutArray\Engines\ArrayEngine;
-use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
+use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SoftDeletableSearchableModel;
 
 class ArrayEngineTest extends TestCase
@@ -343,6 +344,45 @@ class ArrayEngineTest extends TestCase
         $results = $engine->map(new Builder(new SearchableModel, ''), ['hits' => []], new SearchableModel);
 
         $this->assertInstanceOf(Collection::class, $results);
+        $this->assertEquals(0, count($results));
+    }
+
+    /** @test */
+    public function it_can_lazy_map_records_to_models()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+
+        $model = Mockery::mock(stdClass::class);
+        $model->shouldReceive('queryScoutModelsByIds->cursor')->andReturn($models = LazyCollection::make([
+            $model3 = new SearchableModel(['scoutKey' => 3]),
+            $model1 = new SearchableModel(['scoutKey' => 1]),
+            $model2 = new SearchableModel(['scoutKey' => 2]),
+        ]));
+
+        $builder = Mockery::mock(Builder::class);
+
+        $results = $engine->lazyMap($builder, ['nbHits' => 1, 'hits' => [
+            ['objectID' => 2],
+            ['objectID' => 1],
+            ['objectID' => 3],
+        ]], $model);
+
+        $this->assertEquals(3, count($results));
+        $this->assertInstanceOf(LazyCollection::class, $results);
+
+        $this->assertTrue($results->all()[0]->is($model1));
+        $this->assertTrue($results->all()[1]->is($model2));
+        $this->assertTrue($results->all()[2]->is($model3));
+    }
+
+    /** @test */
+    public function it_returns_empty_lazy_collection_if_no_results_when_lazy_mapping()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+
+        $results = $engine->lazyMap(new Builder(new SearchableModel, ''), ['hits' => []], new SearchableModel);
+
+        $this->assertInstanceOf(LazyCollection::class, $results);
         $this->assertEquals(0, count($results));
     }
 
