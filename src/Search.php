@@ -202,6 +202,26 @@ class Search
         return $this;
     }
 
+    public function assertIndexExists($index)
+    {
+        Assert::assertTrue(
+            $this->store->indexExists($index),
+            "Failed asserting that '{$index}' search index exists."
+        );
+
+        return $this;
+    }
+
+    public function assertIndexNotExists($index)
+    {
+        Assert::assertFalse(
+            $this->store->indexExists($index),
+            "Failed asserting that '{$index}' search index doesn't exist."
+        );
+
+        return $this;
+    }
+
     public function fakeRecord(Model $model, array $data, bool $merge = true, string $index = null): self
     {
         $this->store->mock($index ?: $model->searchableAs(), $model->getScoutKey(), $data, $merge);
