@@ -31,6 +31,21 @@ class ArrayStore
         $this->setData('current', $index, $this->getRecordsExcept('current', $key, $index));
     }
 
+    public function createIndex(string $index): void
+    {
+        $this->setData('current', $index, []);
+    }
+
+    public function deleteIndex(string $index): void
+    {
+        $this->storage = Arr::except($this->storage, 'current.' . $index);
+    }
+
+    public function indexExists(string $index): bool
+    {
+        return Arr::exists($this->storage['current'], $index);
+    }
+
     public function flush(string $index): void
     {
         $this->setData('current', $index, []);

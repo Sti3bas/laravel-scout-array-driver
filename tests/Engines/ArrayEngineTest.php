@@ -21,6 +21,15 @@ class ArrayEngineTest extends TestCase
         Config::shouldReceive('get')->with('scout.after_commit', Mockery::any())->andReturn(false);
     }
 
+    protected function tearDown(): void
+    {
+        $this->addToAssertionCount(
+            \Mockery::getContainer()->mockery_getExpectationCount()
+        );
+
+        \Mockery::close();
+    }
+
     /** @test */
     public function it_can_search_for_the_records()
     {
@@ -435,5 +444,29 @@ class ArrayEngineTest extends TestCase
 
         $this->assertCount(1, $results['hits']);
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
+    /** @test */
+    public function it_can_create_search_index()
+    {
+        $store = Mockery::spy(ArrayStore::class);
+
+        $engine = new ArrayEngine($store);
+
+        $engine->createIndex('test');
+
+        $store->shouldHaveReceived('createIndex')->with('test')->once();
+    }
+
+    /** @test */
+    public function it_can_delete_search_index()
+    {
+        $store = Mockery::spy(ArrayStore::class);
+
+        $engine = new ArrayEngine($store);
+
+        $engine->deleteIndex('test');
+
+        $store->shouldHaveReceived('deleteIndex')->with('test')->once();
     }
 }

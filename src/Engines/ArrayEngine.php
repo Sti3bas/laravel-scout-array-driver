@@ -242,6 +242,30 @@ class ArrayEngine extends Engine
     }
 
     /**
+     * Create a search index.
+     *
+     * @param  string  $name
+     * @param  array  $options
+     * @return mixed
+     */
+    public function createIndex($name, array $options = [])
+    {
+        $this->store->createIndex($name);
+    }
+
+    /**
+     * Delete a search index.
+     *
+     * @param  string  $name
+     * @return mixed
+     */
+
+    public function deleteIndex($name)
+    {
+        $this->store->deleteIndex($name);
+    }
+
+    /**
      * Determine if the given model uses soft deletes.
      *
      * @param  \Illuminate\Database\Eloquent\Model  $model
@@ -250,15 +274,5 @@ class ArrayEngine extends Engine
     protected function usesSoftDelete($model)
     {
         return in_array(SoftDeletes::class, class_uses_recursive($model));
-    }
-
-    public function createIndex($name, array $options = [])
-    {
-        $this->store->flush($name);
-    }
-
-    public function deleteIndex($name)
-    {
-        $this->store->flush($name);
     }
 }
