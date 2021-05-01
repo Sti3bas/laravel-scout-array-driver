@@ -963,11 +963,11 @@ class SearchTest extends TestCase
             'foo' => 'bar',
         ]);
 
-        $search->assertSyncedTimes($model, 2, function($record) {
+        $search->assertSyncedTimes($model, 2, function ($record) {
             return $record['foo'] === 'bar';
         });
 
-        $search->assertSyncedTimes($model3, 1, function($record) {
+        $search->assertSyncedTimes($model3, 1, function ($record) {
             return $record['foo'] === 'bar';
         });
     }
@@ -993,11 +993,11 @@ class SearchTest extends TestCase
             'foo' => 'baz',
         ]);
 
-        $search->assertSyncedTimes($model, 1, function($record) {
+        $search->assertSyncedTimes($model, 1, function ($record) {
             return $record['foo'] === 'bar';
         });
 
-        $search->assertSyncedTimes($model3, 1, function($record) {
+        $search->assertSyncedTimes($model3, 1, function ($record) {
             return $record['foo'] === 'bar';
         });
     }
@@ -1102,11 +1102,11 @@ class SearchTest extends TestCase
             'foo' => 'bar',
         ]);
 
-        $search->assertSyncedTimesTo('custom_index', $model, 2, function($record) {
+        $search->assertSyncedTimesTo('custom_index', $model, 2, function ($record) {
             return $record['foo'] === 'bar';
         });
 
-        $search->assertSyncedTimesTo('custom_index', $model3, 1, function($record) {
+        $search->assertSyncedTimesTo('custom_index', $model3, 1, function ($record) {
             return $record['foo'] === 'bar';
         });
     }
@@ -1130,7 +1130,7 @@ class SearchTest extends TestCase
             'foo' => 'baz',
         ]);
 
-        $search->assertSyncedTimesTo('custom_index', $model, 1, function($record) {
+        $search->assertSyncedTimesTo('custom_index', $model, 1, function ($record) {
             return $record['foo'] === 'bar';
         });
     }
@@ -1183,5 +1183,55 @@ class SearchTest extends TestCase
         $store->set('test', 'test', ['foo' => 'bar']);
 
         $search->assertNothingSyncedTo('test');
+    }
+
+    /** @test */
+    public function assert_index_exists_passes_if_index_exists()
+    {
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->createIndex('test2');
+        $store->createIndex('test');
+
+        $this->assertInstanceOf(Search::class, $search->assertIndexExists('test'));
+    }
+
+    /** @test */
+    public function assert_index_exists_fails_if_index_does_not_exist()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->createIndex('test2');
+
+        $search->assertIndexExists('test');
+    }
+
+    /** @test */
+    public function assert_index_not_exists_passes_if_index_does_not_exist()
+    {
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->createIndex('test2');
+
+        $this->assertInstanceOf(Search::class, $search->assertIndexNotExists('test'));
+    }
+
+    /** @test */
+    public function assert_index_not_exists_fails_if_index_exists()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->createIndex('test2');
+        $store->createIndex('test');
+
+        $search->assertIndexNotExists('test');
     }
 }
