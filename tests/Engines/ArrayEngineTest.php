@@ -19,6 +19,7 @@ class ArrayEngineTest extends TestCase
     protected function setUp(): void
     {
         Config::shouldReceive('get')->with('scout.after_commit', Mockery::any())->andReturn(false);
+        Config::shouldReceive('get')->with('scout.soft_delete', Mockery::any())->andReturn(false);
     }
 
     protected function tearDown(): void
@@ -272,14 +273,20 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 2]),
-            new SearchableModel(['foo' => 'bar', 'scoutKey' => 3])
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 3]),
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 4]),
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 5]),
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 6]),
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 7]),
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 8]),
         ]));
 
-        $results = $engine->paginate(new Builder(new SearchableModel(), 'bar'), 1, 3);
+        $results = $engine->paginate(new Builder(new SearchableModel(), 'bar'), 2, 3);
 
-        $this->assertCount(1, $results['hits']);
-        $this->assertEquals(3, $results['total']);
-        $this->assertEquals(1, $results['hits'][0]['scoutKey']);
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals(8, $results['total']);
+        $this->assertEquals(4, $results['hits'][0]['scoutKey']);
+        $this->assertEquals(3, $results['hits'][1]['scoutKey']);
     }
 
     /** @test */
