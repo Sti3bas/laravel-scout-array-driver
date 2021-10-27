@@ -56,6 +56,33 @@ class ArrayEngineTest extends TestCase
     }
 
     /** @test */
+    public function it_can_search_array_properties()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['id' => 1, 'foo' => ['bar', 'baz', 'bak'], 'scoutKey' => '1']),
+            new SearchableModel(['id' => 2, 'foo' => ['bar', 'derp', 'meh'], 'scoutKey' => '2']),
+            new SearchableModel(['id' => 3, 'foo' => ['bak', 'bleh'], 'scoutKey' => '3']),
+        ]));
+
+        $builder = new Builder(new SearchableModel, '');
+        $builder->wheres['foo'] = 'derp';
+
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals('2', $results['hits'][0]['objectID']);
+
+        $builder->wheres['foo'] = 'bak';
+
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals('3', $results['hits'][0]['objectID']);
+        $this->assertEquals('1', $results['hits'][1]['objectID']);
+    }
+
+    /** @test */
     public function it_returns_all_results_if_no_query_provided()
     {
         $engine = new ArrayEngine(new ArrayStore());

@@ -3,6 +3,7 @@
 namespace Sti3bas\ScoutArray\Engines;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
@@ -151,7 +152,7 @@ class ArrayEngine extends Engine
         }
 
         return Collection::make($filters)->every(function ($value, $key) use ($record) {
-            return $record[$key] === $value;
+            return in_array($value, Arr::wrap($record[$key]));
         });
     }
 
