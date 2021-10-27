@@ -152,7 +152,7 @@ class ArrayEngine extends Engine
         }
 
         return Collection::make($filters)->every(function ($value, $key) use ($record) {
-            return in_array($value, Arr::wrap($record[$key]));
+            return isset($record[$key]) && in_array($value, Arr::wrap($record[$key]));
         });
     }
 
