@@ -133,7 +133,7 @@ class ArrayEngine extends Engine
         $matches = Collection::make($matches);
 
         return [
-            'hits' => (isset($options['perPage']) ? $matches->slice(($options['page'] ?? 1) - 1, $options['perPage']) : $matches)->values()->all(),
+            'hits' => (isset($options['perPage']) ? $matches->slice((($options['page'] ?? 1) - 1) * $options['perPage'], $options['perPage']) : $matches)->values()->all(),
             'total' => $matches->count(),
         ];
     }
