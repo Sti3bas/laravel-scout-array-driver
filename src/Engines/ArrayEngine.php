@@ -111,16 +111,6 @@ class ArrayEngine extends Engine
     {
         $index = $builder->index ?: $builder->model->searchableAs();
 
-        if ($builder->callback) {
-            return call_user_func(
-                $builder->callback,
-                $this->store,
-                $index,
-                $builder->query,
-                $options
-            );
-        }
-
         $matches = $this->store->find($index, function ($record) use ($builder) {
             $values = new RecursiveIteratorIterator(new RecursiveArrayIterator($record));
 

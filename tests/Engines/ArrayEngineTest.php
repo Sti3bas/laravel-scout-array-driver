@@ -90,31 +90,7 @@ class ArrayEngineTest extends TestCase
         $this->assertCount(2, $results['hits']);
         $this->assertEquals(3, $results['total']);
     }
-
-    /** @test */
-    public function callback_can_be_passed_to_search()
-    {
-        $arrayStore = new ArrayStore();
-        $engine = new ArrayEngine($arrayStore);
-        $engine->update(Collection::make([
-            new SearchableModel(['id' => 1, 'foo' => 'bar', 'scoutKey' => 1]),
-            new SearchableModel(['id' => 2, 'foo' => 'baz', 'scoutKey' => 2]),
-            new SearchableModel(['id' => 3, 'foo' => 'bar', 'scoutKey' => 3])
-        ]));
-
-        $wasCalled = false;
-        $builder = new Builder(new SearchableModel, 'bar', function ($store, $index, $query) use (&$wasCalled, $arrayStore) {
-            $wasCalled = true;
-            $this->assertSame($store, $arrayStore);
-            $this->assertEquals($index, (new SearchableModel())->searchableAs());
-            $this->assertEquals('bar', $query);
-        });
-
-        $engine->search($builder);
-
-        $this->assertTrue($wasCalled);
-    }
-    
+   
     /** @test */
     public function it_returns_empty_array_if_no_results_found()
     {
