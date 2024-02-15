@@ -2,16 +2,17 @@
 
 namespace Sti3bas\ScoutArray\Tests\Engines;
 
-use Mockery;
-use Laravel\Scout\Builder;
-use PHPUnit\Framework\TestCase;
 use Illuminate\Support\Collection;
-use Sti3bas\ScoutArray\ArrayStore;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\LazyCollection;
+use Laravel\Scout\Builder;
+use Mockery;
+use PHPUnit\Framework\TestCase;
+use stdClass;
+use Sti3bas\ScoutArray\ArrayStore;
 use Sti3bas\ScoutArray\Engines\ArrayEngine;
-use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
+use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SoftDeletableSearchableModel;
 
 class ArrayEngineTest extends TestCase
@@ -90,7 +91,7 @@ class ArrayEngineTest extends TestCase
         $this->assertCount(2, $results['hits']);
         $this->assertEquals(3, $results['total']);
     }
-   
+
     /** @test */
     public function it_returns_empty_array_if_no_results_found()
     {
@@ -189,7 +190,7 @@ class ArrayEngineTest extends TestCase
 
         $engine = new ArrayEngine(new ArrayStore(), $softDeletesEnabled = false);
         $engine->update(Collection::make([$model, $model2]));
-        
+
         $builder1 = new Builder(new SoftDeletableSearchableModel, '');
         $builder1->wheres = [
             'scoutKey' => 123,
@@ -417,7 +418,7 @@ class ArrayEngineTest extends TestCase
             new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bar', 'x' => 'z', 'scoutKey' => 3]),
         ]));
-        
+
         $builder = new Builder(new SearchableModel(), null);
         $builder->wheres = [
             'foo' => 'baz',

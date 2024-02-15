@@ -34,8 +34,7 @@ class ArrayEngine extends Engine
     /**
      * Update the given model in the index.
      *
-     * @param Collection $models
-     *
+     * @param  Collection  $models
      * @return void
      */
     public function update($models)
@@ -59,8 +58,7 @@ class ArrayEngine extends Engine
     /**
      * Remove the given model from the index.
      *
-     * @param Collection $models
-     *
+     * @param  Collection  $models
      * @return void
      */
     public function delete($models)
@@ -73,7 +71,6 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param Builder $builder
      *
      * @return mixed
      */
@@ -87,7 +84,6 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param  \Laravel\Scout\Builder  $builder
      * @param  int  $perPage
      * @param  int  $page
      * @return mixed
@@ -103,8 +99,6 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param  \Laravel\Scout\Builder  $builder
-     * @param  array  $options
      * @return mixed
      */
     protected function performSearch(Builder $builder, array $options = [])
@@ -114,8 +108,8 @@ class ArrayEngine extends Engine
         $matches = $this->store->find($index, function ($record) use ($builder) {
             $values = new RecursiveIteratorIterator(new RecursiveArrayIterator($record));
 
-            return $this->matchesFilters($record, $builder->wheres) && !empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                return !$builder->query || stripos($value, $builder->query) !== false;
+            return $this->matchesFilters($record, $builder->wheres) && ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
+                return ! $builder->query || stripos($value, $builder->query) !== false;
             }));
         }, true);
 
@@ -130,8 +124,8 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given record matches given filters.
      *
-     * @param array $record
-     * @param array $filters
+     * @param  array  $record
+     * @param  array  $filters
      * @return bool
      */
     private function matchesFilters($record, $filters)
@@ -148,7 +142,7 @@ class ArrayEngine extends Engine
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param mixed $results
+     * @param  mixed  $results
      * @return \Illuminate\Support\Collection
      */
     public function mapIds($results)
@@ -159,9 +153,8 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param mixed                               $results
-     * @param \Illuminate\Database\Eloquent\Model $model
-     *
+     * @param  mixed  $results
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return Collection
      */
     public function map(Builder $builder, $results, $model)
@@ -184,7 +177,6 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model via a lazy collection.
      *
-     * @param  \Laravel\Scout\Builder  $builder
      * @param  mixed  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Support\LazyCollection
@@ -211,8 +203,7 @@ class ArrayEngine extends Engine
     /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param mixed $results
-     *
+     * @param  mixed  $results
      * @return int
      */
     public function getTotalCount($results)
@@ -235,7 +226,6 @@ class ArrayEngine extends Engine
      * Create a search index.
      *
      * @param  string  $name
-     * @param  array  $options
      * @return mixed
      */
     public function createIndex($name, array $options = [])
@@ -249,7 +239,6 @@ class ArrayEngine extends Engine
      * @param  string  $name
      * @return mixed
      */
-
     public function deleteIndex($name)
     {
         $this->store->deleteIndex($name);

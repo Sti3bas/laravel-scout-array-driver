@@ -38,7 +38,7 @@ class ArrayStore
 
     public function deleteIndex(string $index): void
     {
-        $this->storage = Arr::except($this->storage, 'current.' . $index);
+        $this->storage = Arr::except($this->storage, 'current.'.$index);
     }
 
     public function indexExists(string $index): bool
@@ -66,12 +66,12 @@ class ArrayStore
         return $this->findInArray(Arr::get($this->storage['history'], $index, []), $callback);
     }
 
-    public function count(string $index = null, string $type = 'current'): int
+    public function count(?string $index = null, string $type = 'current'): int
     {
         return count($index ? Arr::get($this->storage[$type], $index, []) : Arr::flatten($this->storage[$type], 1));
     }
 
-    public function countInHistory(string $index = null): int
+    public function countInHistory(?string $index = null): int
     {
         return $this->count($index, 'history');
     }
@@ -126,7 +126,7 @@ class ArrayStore
             if ($mock = $this->getMock($index, $record['objectID'])) {
                 return $mock;
             }
-            
+
             return $record;
         }, Arr::get($this->storage['current'], $index, []));
     }
