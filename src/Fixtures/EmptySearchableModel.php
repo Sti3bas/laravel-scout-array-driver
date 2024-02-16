@@ -1,11 +1,11 @@
 <?php
 
-namespace Sti3bas\ScoutArray\Tests\Fixtures;
+namespace Sti3bas\ScoutArray\Fixtures;
 
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
-class SearchableModel extends Model
+class EmptySearchableModel extends Model
 {
     use Searchable;
 
@@ -13,11 +13,16 @@ class SearchableModel extends Model
 
     public function searchableAs()
     {
-        return 'test_index';
+        return 'test_index3';
     }
 
     public function getScoutKey()
     {
         return $this->scoutKey;
+    }
+
+    public function toSearchableArray()
+    {
+        return [];
     }
 }
