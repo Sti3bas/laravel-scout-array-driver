@@ -27,6 +27,7 @@
     "laravel/scout": "^10.8"
   },
   "require-dev": {
+    "laravel/pint": "^1.13",
     "mockery/mockery": "^1.5.1",
     "phpunit/phpunit": "^10.0.7"
   },
