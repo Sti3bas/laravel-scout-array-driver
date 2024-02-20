@@ -44,7 +44,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/bus:${{ matrix.laravel }}" "illuminate/contracts:${{ matrix.laravel }}" "illuminate/database:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/pagination:${{ matrix.laravel }}" "illuminate/queue:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require "illuminate/bus:${{ matrix.laravel }}" "illuminate/contracts:${{ matrix.laravel }}" "illuminate/database:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/pagination:${{ matrix.laravel }}" "illuminate/queue:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
       - name: Execute tests
         run: vendor/bin/phpunit

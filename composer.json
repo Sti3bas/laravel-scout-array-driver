@@ -33,6 +33,7 @@
         "phpunit/phpunit": "^9.0 || ^10.5"
     },
     "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Sti3bas\\ScoutArray\\": "src/"
