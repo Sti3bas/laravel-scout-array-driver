@@ -2,7 +2,7 @@
 
 namespace Sti3bas\ScoutArray\Tests;
 
-use PHPUnit\Framework\TestCase;
+use Orchestra\Testbench\TestCase;
 use Sti3bas\ScoutArray\ArrayStore;
 
 class ArrayStoreTest extends TestCase
@@ -343,7 +343,7 @@ class ArrayStoreTest extends TestCase
         $store->mock('test_index', 'key', [
             'foo' => 'mocked',
         ], false);
-        
+
         $this->assertEquals(['foo' => 'mocked', 'objectID' => 'key'], $store->get('test_index', 'key'));
     }
 
@@ -358,20 +358,20 @@ class ArrayStoreTest extends TestCase
 
         $this->assertTrue($store->indexExists('test'));
     }
-    
+
     /** @test */
     public function it_can_delete_search_index()
     {
         $store = new ArrayStore();
-        
+
         $store->createIndex('test');
         $store->createIndex('test2');
 
         $this->assertTrue($store->indexExists('test'));
         $this->assertTrue($store->indexExists('test2'));
-        
+
         $store->deleteIndex('test');
-        
+
         $this->assertFalse($store->indexExists('test'));
         $this->assertTrue($store->indexExists('test2'));
     }
