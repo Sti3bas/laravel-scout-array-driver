@@ -19,6 +19,8 @@ class ArrayEngineTest extends TestCase
 {
     protected function setUp(): void
     {
+        parent::setUp();
+
         Config::shouldReceive('get')->with('scout.after_commit', Mockery::any())->andReturn(false);
         Config::shouldReceive('get')->with('scout.soft_delete', Mockery::any())->andReturn(false);
     }
