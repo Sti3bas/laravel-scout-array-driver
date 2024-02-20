@@ -3,10 +3,9 @@
 namespace Sti3bas\ScoutArray\Tests;
 
 use PHPUnit\Framework\AssertionFailedError;
-use PHPUnit\Framework\TestCase;
 use Sti3bas\ScoutArray\ArrayStore;
-use Sti3bas\ScoutArray\Fixtures\SearchableModel;
 use Sti3bas\ScoutArray\Search;
+use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 
 class SearchTest extends TestCase
 {

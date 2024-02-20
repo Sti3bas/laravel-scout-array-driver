@@ -1,6 +1,6 @@
 <?php
 
-namespace Sti3bas\ScoutArray\Fixtures;
+namespace Sti3bas\ScoutArray\Tests\Fixtures;
 
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;

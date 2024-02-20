@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Mockery;
-use PHPUnit\Framework\TestCase;
 use stdClass;
 use Sti3bas\ScoutArray\ArrayStore;
 use Sti3bas\ScoutArray\Engines\ArrayEngine;
-use Sti3bas\ScoutArray\Fixtures\EmptySearchableModel;
-use Sti3bas\ScoutArray\Fixtures\SearchableModel;
-use Sti3bas\ScoutArray\Fixtures\SoftDeletableSearchableModel;
+use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
+use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
+use Sti3bas\ScoutArray\Tests\Fixtures\SoftDeletableSearchableModel;
+use Sti3bas\ScoutArray\Tests\TestCase;
 
 class ArrayEngineTest extends TestCase
 {

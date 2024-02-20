@@ -2,7 +2,6 @@
 
 namespace Sti3bas\ScoutArray\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Sti3bas\ScoutArray\ArrayStore;
 
 class ArrayStoreTest extends TestCase
