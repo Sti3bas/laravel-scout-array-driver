@@ -29,7 +29,7 @@
     "require-dev": {
         "laravel/pint": "^1.0",
         "mockery/mockery": "^1.5.1",
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^9.0 || ^10.0"
     },
     "minimum-stability": "dev",
     "autoload": {
