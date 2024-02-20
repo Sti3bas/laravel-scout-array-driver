@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Mockery;
-use PHPUnit\Framework\TestCase;
+use Orchestra\Testbench\TestCase;
 use stdClass;
 use Sti3bas\ScoutArray\ArrayStore;
 use Sti3bas\ScoutArray\Engines\ArrayEngine;
