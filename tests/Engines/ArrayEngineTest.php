@@ -32,6 +32,8 @@ class ArrayEngineTest extends TestCase
         );
 
         \Mockery::close();
+
+        parent::tearDown();
     }
 
     /** @test */
