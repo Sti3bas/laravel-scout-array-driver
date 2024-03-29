@@ -23,6 +23,7 @@ class ArrayEngineTest extends TestCase
 
         Config::shouldReceive('get')->with('scout.after_commit', Mockery::any())->andReturn(false);
         Config::shouldReceive('get')->with('scout.soft_delete', Mockery::any())->andReturn(false);
+        Config::makePartial();
     }
 
     protected function tearDown(): void
