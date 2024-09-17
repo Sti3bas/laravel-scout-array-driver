@@ -99,7 +99,7 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @return mixed
+     * @return array
      */
     protected function performSearch(Builder $builder, array $options = [])
     {
@@ -108,9 +108,10 @@ class ArrayEngine extends Engine
         $matches = $this->store->find($index, function ($record) use ($builder) {
             $values = new RecursiveIteratorIterator(new RecursiveArrayIterator($record));
 
-            return $this->matchesFilters($record, $builder->wheres) && ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                return ! $builder->query || stripos($value, $builder->query) !== false;
-            }));
+            return $this->matchesFilters($record, $builder->wheres) &&
+                $this->matchesFilters($record, $builder->whereIns) && ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
+                    return ! $builder->query || stripos($value, $builder->query) !== false;
+                }));
         }, true);
 
         $matches = Collection::make($matches);
@@ -135,6 +136,20 @@ class ArrayEngine extends Engine
         }
 
         return Collection::make($filters)->every(function ($value, $key) use ($record) {
+            $keyExploded = explode('.', $key);
+            if (count($keyExploded) > 1) {
+                if (data_get($record, $keyExploded[0]) instanceof Collection) {
+                    return data_get($record, $keyExploded[0])->contains(function ($subRecord) use ($keyExploded, $value) {
+                        if (is_array($value)) {
+                            return in_array(data_get($subRecord, $keyExploded[1]), $value, true);
+                        }
+                        return data_get($subRecord, $keyExploded[1]) === $value;
+                    });
+                }
+
+                return data_get($record, $keyExploded) === $value;
+            }
+
             return $record[$key] === $value;
         });
     }
@@ -253,5 +268,19 @@ class ArrayEngine extends Engine
     protected function usesSoftDelete($model)
     {
         return in_array(SoftDeletes::class, class_uses_recursive($model));
+    }
+
+    protected function buildSearchQuery(Builder $builder)
+    {
+        $query = $this->initializeSearchQuery(
+            $builder,
+            array_keys($builder->model->toSearchableArray()),
+            $this->getPrefixColumns($builder),
+            $this->getFullTextColumns($builder)
+        );
+
+        return $this->constrainForSoftDeletes(
+            $builder, $this->addAdditionalConstraints($builder, $query->take($builder->limit))
+        );
     }
 }

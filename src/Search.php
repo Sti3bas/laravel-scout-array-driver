@@ -103,6 +103,32 @@ class Search
         return $this;
     }
 
+    public function assertCount(int $count, ?Closure $callback = null): self
+    {
+        $countFiltered = count($this->store->find($this->store->getDefaultIndex(), function ($record) use ($callback) {
+            return ($callback ? $callback($record) : true);
+        }));
+
+        Assert::assertSame(
+            $countFiltered, $count, 'Failed asserting that search index does not have the expected size.'
+        );
+
+        return $this;
+    }
+
+    public function assertCountIn(string $index, int $count, ?Closure $callback = null): self
+    {
+        $countFiltered = count($this->store->find($index, function ($record) use ($callback) {
+            return ($callback ? $callback($record) : true);
+        }));
+
+        Assert::assertSame(
+            $countFiltered, $count, "Failed asserting that '{$index}' search index does not have the expected size."
+        );
+
+        return $this;
+    }
+
     public function assertSynced(Model $model, ?Closure $callback = null): self
     {
         Assert::assertNotEmpty(
