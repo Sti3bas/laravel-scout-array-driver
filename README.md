@@ -174,6 +174,30 @@ User::factory()->create();
 Search::assertNotEmptyIn('users'); // ✅
 ```
 
+### assertCount($count)
+
+Checks if there is at least one record in any of search indexes.
+
+```php
+Search::assertCount(1); // ❌
+
+User::factory()->create();
+
+Search::assertCount(1); // ✅
+```
+
+### assertCountIn($index)
+
+Checks if search index is not empty.
+
+```php
+Search::assertNotEmptyIn('users', 1); // ❌
+
+User::factory()->create();
+
+Search::assertNotEmptyIn('users', 1); // ✅
+```
+
 ### assertSynced($model, $callback = null)
 
 Checks if model was synced to search index. This assertion checks every record of the given model which was synced during the request.

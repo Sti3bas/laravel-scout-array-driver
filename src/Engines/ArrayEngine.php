@@ -34,7 +34,7 @@ class ArrayEngine extends Engine
     /**
      * Update the given model in the index.
      *
-     * @param  Collection  $models
+     * @param Collection $models
      * @return void
      */
     public function update($models)
@@ -58,7 +58,7 @@ class ArrayEngine extends Engine
     /**
      * Remove the given model from the index.
      *
-     * @param  Collection  $models
+     * @param Collection $models
      * @return void
      */
     public function delete($models)
@@ -84,8 +84,8 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param  int  $perPage
-     * @param  int  $page
+     * @param int $perPage
+     * @param int $page
      * @return mixed
      */
     public function paginate(Builder $builder, $perPage, $page)
@@ -99,7 +99,7 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @return mixed
+     * @return array
      */
     protected function performSearch(Builder $builder, array $options = [])
     {
@@ -108,9 +108,12 @@ class ArrayEngine extends Engine
         $matches = $this->store->find($index, function ($record) use ($builder) {
             $values = new RecursiveIteratorIterator(new RecursiveArrayIterator($record));
 
-            return $this->matchesFilters($record, $builder->wheres) && ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                return ! $builder->query || stripos($value, $builder->query) !== false;
-            }));
+            return $this->matchesFilters($record, $builder->wheres) &&
+                $this->matchesFilters($record, $builder->whereIns) &&
+                $this->matchesFilters($record, data_get($builder, 'whereNotIns', []), true) &&
+                !empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
+                    return !$builder->query || stripos($value, $builder->query) !== false;
+                }));
         }, true);
 
         $matches = Collection::make($matches);
@@ -124,25 +127,46 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given record matches given filters.
      *
-     * @param  array  $record
-     * @param  array  $filters
+     * @param array $record
+     * @param array $filters
+     * @param bool $not
      * @return bool
      */
-    private function matchesFilters($record, $filters)
+    private function matchesFilters($record, $filters, $not = false)
     {
         if (empty($filters)) {
             return true;
         }
 
-        return Collection::make($filters)->every(function ($value, $key) use ($record) {
-            return $record[$key] === $value;
+        $match = function ($record, $key, $value) {
+            if (is_array($value)) {
+                return in_array(data_get($record, $key), $value, true);
+            }
+            return data_get($record, $key) === $value;
+        };
+
+        $match = Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
+            $keyExploded = explode('.', $key);
+            if (count($keyExploded) > 1) {
+                if (data_get($record, $keyExploded[0]) instanceof Collection) {
+                    return data_get($record, $keyExploded[0])->contains(function ($subRecord) use ($match, $keyExploded, $value) {
+                        return $match($subRecord, $keyExploded[1], $value);
+                    });
+                }
+
+                return $match($record, $keyExploded, $value);
+            }
+
+            return $match($record, $key, $value);
         });
+
+        return $not ? !$match : $match;
     }
 
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param  mixed  $results
+     * @param mixed $results
      * @return \Illuminate\Support\Collection
      */
     public function mapIds($results)
@@ -153,8 +177,8 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param mixed $results
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return Collection
      */
     public function map(Builder $builder, $results, $model)
@@ -177,8 +201,8 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model via a lazy collection.
      *
-     * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param mixed $results
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return \Illuminate\Support\LazyCollection
      */
     public function lazyMap(Builder $builder, $results, $model)
@@ -203,7 +227,7 @@ class ArrayEngine extends Engine
     /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param  mixed  $results
+     * @param mixed $results
      * @return int
      */
     public function getTotalCount($results)
@@ -214,7 +238,7 @@ class ArrayEngine extends Engine
     /**
      * Flush all of the model's records from the engine.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return void
      */
     public function flush($model)
@@ -225,7 +249,7 @@ class ArrayEngine extends Engine
     /**
      * Create a search index.
      *
-     * @param  string  $name
+     * @param string $name
      * @return mixed
      */
     public function createIndex($name, array $options = [])
@@ -236,7 +260,7 @@ class ArrayEngine extends Engine
     /**
      * Delete a search index.
      *
-     * @param  string  $name
+     * @param string $name
      * @return mixed
      */
     public function deleteIndex($name)
@@ -247,11 +271,25 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given model uses soft deletes.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param \Illuminate\Database\Eloquent\Model $model
      * @return bool
      */
     protected function usesSoftDelete($model)
     {
         return in_array(SoftDeletes::class, class_uses_recursive($model));
+    }
+
+    protected function buildSearchQuery(Builder $builder)
+    {
+        $query = $this->initializeSearchQuery(
+            $builder,
+            array_keys($builder->model->toSearchableArray()),
+            $this->getPrefixColumns($builder),
+            $this->getFullTextColumns($builder)
+        );
+
+        return $this->constrainForSoftDeletes(
+            $builder, $this->addAdditionalConstraints($builder, $query->take($builder->limit))
+        );
     }
 }

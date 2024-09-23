@@ -83,6 +83,11 @@ class ArrayStore
         $this->setData('mocks', $index, Arr::prepend($this->getRecordsExcept('current', $key, $index), $data));
     }
 
+    public function getDefaultIndex(string $type = 'current'): string
+    {
+        return Arr::first(array_keys($this->storage[$type])) ?? '';
+    }
+
     private function add(string $type, string $index, string $key, array $data, bool $removeOld = true): void
     {
         $array = &$this->storage[$type];

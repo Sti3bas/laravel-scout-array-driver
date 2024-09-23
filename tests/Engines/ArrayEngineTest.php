@@ -415,7 +415,7 @@ class ArrayEngineTest extends TestCase
     }
 
     /** @test */
-    public function it_can_be_filtered()
+    public function it_can_be_filtered_using_wheres()
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -433,6 +433,49 @@ class ArrayEngineTest extends TestCase
 
         $this->assertCount(1, $results['hits']);
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
+    /** @test */
+    public function it_can_be_filtered_using_where_in()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
+            new SearchableModel(['foo' => 'bax', 'x' => 'z', 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereIns = [
+            'foo' => ['baz'],
+            'x' => ['x', 'y']
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
+    /** @test */
+    public function it_can_be_filtered_using_where_not_in()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
+            new SearchableModel(['foo' => 'bax', 'x' => 'z', 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereNotIns = [
+            'foo' => ['baz'],
+            'x' => ['x', 'y']
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals(3, $results['hits'][0]['scoutKey']);
+        $this->assertEquals(1, $results['hits'][1]['scoutKey']);
     }
 
     /** @test */

@@ -425,6 +425,80 @@ class SearchTest extends TestCase
     }
 
     /** @test */
+    public function assert_count_fails_if_no_records_exists()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $result = $search->assertCount(1);
+    }
+
+    /** @test */
+    public function assert_count_fails_if_records_counted_is_invalid()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->set('test', 'test', ['foo' => 'bar']);
+
+        $result = $search->assertCount(20);
+    }
+
+    /** @test */
+    public function assert_count_passes_if_record_exists()
+    {
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->set('test', 'test', ['foo' => 'bar']);
+
+        $result = $search->assertCount(1);
+
+        $this->assertInstanceOf(Search::class, $result);
+    }
+
+    /** @test */
+    public function assert_count_in_fails_if_no_records_exists()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $result = $search->assertCountIn('test', 1);
+    }
+
+    /** @test */
+    public function assert_count_in_fails_if_records_counted_is_invalid()
+    {
+        $this->expectException(AssertionFailedError::class);
+
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->set('test', 'test', ['foo' => 'bar']);
+
+        $result = $search->assertCountIn('test2',1);
+    }
+
+    /** @test */
+    public function assert_count_in_passes_if_record_exists()
+    {
+        $store = new ArrayStore;
+        $search = new Search($store);
+
+        $store->set('test', 'test', ['foo' => 'bar']);
+
+        $result = $search->assertCountIn('test', 1);
+
+        $this->assertInstanceOf(Search::class, $result);
+    }
+
+    /** @test */
     public function assert_not_empty_passes_if_record_exists()
     {
         $store = new ArrayStore;
