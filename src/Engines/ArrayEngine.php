@@ -110,7 +110,7 @@ class ArrayEngine extends Engine
 
             return $this->matchesFilters($record, $builder->wheres) &&
                 $this->matchesFilters($record, $builder->whereIns) &&
-                !$this->matchesFilters($record, $builder->whereNotIns) &&
+                $this->matchesFilters($record, data_get($builder, 'whereNotIns', []), true) &&
                 !empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
                     return !$builder->query || stripos($value, $builder->query) !== false;
                 }));
@@ -129,9 +129,10 @@ class ArrayEngine extends Engine
      *
      * @param array $record
      * @param array $filters
+     * @param bool $not
      * @return bool
      */
-    private function matchesFilters($record, $filters)
+    private function matchesFilters($record, $filters, $not = false)
     {
         if (empty($filters)) {
             return true;
@@ -144,7 +145,7 @@ class ArrayEngine extends Engine
             return data_get($record, $key) === $value;
         };
 
-        return Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
+        $match = Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
             $keyExploded = explode('.', $key);
             if (count($keyExploded) > 1) {
                 if (data_get($record, $keyExploded[0]) instanceof Collection) {
@@ -158,6 +159,8 @@ class ArrayEngine extends Engine
 
             return $match($record, $key, $value);
         });
+
+        return $not ? !$match : $match;
     }
 
     /**
