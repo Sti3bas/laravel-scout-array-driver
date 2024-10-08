@@ -5,14 +5,18 @@ namespace Sti3bas\ScoutArray;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Assert;
+use Sti3bas\ScoutArray\Engines\ArrayEngine;
 
 class Search
 {
-    protected $store;
+    protected ArrayStore $store;
 
-    public function __construct(ArrayStore $store)
+    protected ArrayEngine $engine;
+
+    public function __construct(ArrayEngine $engine)
     {
-        $this->store = $store;
+        $this->store = $engine->store;
+        $this->engine = $engine;
     }
 
     public function assertContains(Model $model, ?Closure $callback = null): self
@@ -253,5 +257,16 @@ class Search
         $this->store->mock($index ?: $model->searchableAs(), $model->getScoutKey(), $data, $merge);
 
         return $this;
+    }
+
+    public function fakeResponseData(array $data)
+    {
+        $fakeBuilder = new FakeBuilder();
+
+        $searchResponseMock = new SearchResponseMock($fakeBuilder, $data);
+
+        $this->engine->addSearchResponseMock($searchResponseMock);
+
+        return $fakeBuilder;
     }
 }
