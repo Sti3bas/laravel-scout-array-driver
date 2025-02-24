@@ -2,10 +2,13 @@
 
 namespace Sti3bas\ScoutArray\Tests;
 
+use Laravel\Scout\Builder;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\AssertionFailedError;
 use Sti3bas\ScoutArray\ArrayStore;
+use Sti3bas\ScoutArray\Engines\ArrayEngine;
 use Sti3bas\ScoutArray\Search;
+use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 
 class SearchTest extends TestCase
@@ -14,7 +17,7 @@ class SearchTest extends TestCase
     public function it_can_fake_a_record()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel([
             'scoutKey' => 123,
@@ -39,7 +42,7 @@ class SearchTest extends TestCase
     public function it_can_fake_full_synced_record()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel([
             'scoutKey' => 123,
@@ -65,7 +68,7 @@ class SearchTest extends TestCase
     public function it_can_fake_a_record_in_the_custom_index()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel([
             'scoutKey' => 123,
@@ -87,10 +90,266 @@ class SearchTest extends TestCase
     }
 
     /** @test */
+    public function it_can_fake_response_data()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ]);
+
+        $search = $engine->search(new Builder($model, ''));
+
+        $this->assertEquals('bar', $search['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_multiple_searches()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $modelA = new SearchableModel();
+        $modelB = new EmptySearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ]);
+
+        $searchA = $engine->search(new Builder($modelA, ''));
+        $searchB = $engine->search(new Builder($modelB, ''));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('bar', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_in_multiple_indexes()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $modelA = new SearchableModel();
+        $modelB = new EmptySearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->within($modelB->searchableAs());
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->within($modelA->searchableAs());
+
+        $searchA = $engine->search(new Builder($modelA, ''));
+        $searchB = $engine->search(new Builder($modelB, ''));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_different_queries()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->query('test-query');
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ]);
+
+        $searchA = $engine->search(new Builder($model, ''));
+        $searchB = $engine->search(new Builder($model, 'test-query'));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_where_clause()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->where('test', 'bar')->where('test2', 'bar');
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->where('test3', 'bar');
+
+        $searchA = $engine->search((new Builder($model, ''))->where('test', 'bar')->where('test2', 'bar'));
+        $searchB = $engine->search((new Builder($model, ''))->where('test3', 'bar'));
+
+        $this->assertEquals('baz', $searchA['foo']);
+        $this->assertEquals('bar', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_where_in_clause()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->whereIn('test', ['bar', 'baz']);
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->whereIn('test2', ['foo', 'bar']);
+
+        $searchA = $engine->search((new Builder($model, ''))->whereIn('test2', ['foo', 'bar']));
+        $searchB = $engine->search((new Builder($model, ''))->whereIn('test', ['bar', 'baz']));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_where_not_in_clause()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->whereNotIn('test', ['bar', 'baz']);
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->whereNotIn('test2', ['foo', 'bar']);
+
+        $searchA = $engine->search((new Builder($model, ''))->whereNotIn('test2', ['foo', 'bar']));
+        $searchB = $engine->search((new Builder($model, ''))->whereNotIn('test', ['bar', 'baz']));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_limit()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->take(50);
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->take(100);
+
+        $searchA = $engine->search((new Builder($model, ''))->take(100));
+        $searchB = $engine->search((new Builder($model, ''))->take(50));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_order()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->orderBy('test', 'asc')->orderBy('test2', 'desc');
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->orderBy('test3');
+
+        $searchA = $engine->search((new Builder($model, ''))->orderBy('test3'));
+        $searchB = $engine->search((new Builder($model, ''))->orderBy('test', 'asc')->orderBy('test2', 'desc'));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
+    public function it_can_fake_response_data_for_searches_with_options()
+    {
+        $store = new ArrayStore;
+        $engine = new ArrayEngine($store);
+        $search = new Search($engine);
+
+        $model = new SearchableModel();
+
+        $search->fakeResponseData([
+            'foo' => 'boo',
+        ]);
+
+        $search->fakeResponseData([
+            'foo' => 'baz',
+        ])->options(['foo' => 'bar', 'bar' => 'baz']);
+
+        $search->fakeResponseData([
+            'foo' => 'bar',
+        ])->options(['foo' => 'bar']);
+
+        $searchA = $engine->search((new Builder($model, ''))->options(['foo' => 'bar']));
+        $searchB = $engine->search((new Builder($model, ''))->options(['foo' => 'bar', 'bar' => 'baz']));
+
+        $this->assertEquals('bar', $searchA['foo']);
+        $this->assertEquals('baz', $searchB['foo']);
+    }
+
+    /** @test */
     public function assert_contains_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
 
@@ -107,7 +366,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
 
@@ -118,7 +377,7 @@ class SearchTest extends TestCase
     public function assert_contains_passes_if_callback_returns_true()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -138,7 +397,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -156,7 +415,7 @@ class SearchTest extends TestCase
     public function assert_not_contains_passes_if_record_does_not_exist()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -175,7 +434,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -191,7 +450,7 @@ class SearchTest extends TestCase
     public function assert_not_contains_passes_if_callback_returns_false()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -210,7 +469,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -227,7 +486,7 @@ class SearchTest extends TestCase
     public function assert_contains_in_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -247,7 +506,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -263,7 +522,7 @@ class SearchTest extends TestCase
     public function assert_contains_in_passes_if_callback_returns_true()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -283,7 +542,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -302,7 +561,7 @@ class SearchTest extends TestCase
     public function assert_not_contains_in_passes_if_record_doesn_not_exist()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -322,7 +581,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -338,7 +597,7 @@ class SearchTest extends TestCase
     public function assert_not_contains_in_passes_if_callback_returns_false()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -359,7 +618,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -378,7 +637,7 @@ class SearchTest extends TestCase
     public function assert_empty_passes_if_no_records_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $result = $search->assertEmpty();
 
@@ -391,7 +650,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -402,7 +661,7 @@ class SearchTest extends TestCase
     public function assert_empty_in_passes_if_no_records_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -417,7 +676,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -430,7 +689,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $result = $search->assertCount(1);
     }
@@ -441,7 +700,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -452,7 +711,7 @@ class SearchTest extends TestCase
     public function assert_count_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -467,7 +726,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $result = $search->assertCountIn('test', 1);
     }
@@ -478,18 +737,18 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
-        $result = $search->assertCountIn('test2',1);
+        $result = $search->assertCountIn('test2', 1);
     }
 
     /** @test */
     public function assert_count_in_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -502,7 +761,7 @@ class SearchTest extends TestCase
     public function assert_not_empty_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', [
             'foo' => 'bar',
@@ -519,7 +778,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $search->assertNotEmpty();
     }
@@ -528,7 +787,7 @@ class SearchTest extends TestCase
     public function assert_not_empty_in_passes_if_record_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', [
             'foo' => 'bar',
@@ -545,7 +804,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test2', 'test', [
             'foo' => 'bar',
@@ -558,7 +817,7 @@ class SearchTest extends TestCase
     public function assert_synced_passes_if_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -580,7 +839,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -595,7 +854,7 @@ class SearchTest extends TestCase
     public function assert_synced_passes_if_callback_returns_true_and_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -622,7 +881,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -648,7 +907,7 @@ class SearchTest extends TestCase
     public function assert_not_synced_passes_if_record_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -665,7 +924,7 @@ class SearchTest extends TestCase
     public function assert_not_synced_passes_if_no_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
 
@@ -680,7 +939,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -697,7 +956,7 @@ class SearchTest extends TestCase
     public function assert_not_synced_passes_if_callback_returns_false_and_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -725,7 +984,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -751,7 +1010,7 @@ class SearchTest extends TestCase
     public function assert_synced_to_passes_if_record_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -775,7 +1034,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -793,7 +1052,7 @@ class SearchTest extends TestCase
     public function assert_synced_to_passes_if_callback_returns_true_and_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -821,7 +1080,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -847,7 +1106,7 @@ class SearchTest extends TestCase
     public function assert_not_synced_to_passes_if_no_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -869,7 +1128,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123]);
         $model2 = new SearchableModel(['scoutKey' => 234]);
@@ -887,7 +1146,7 @@ class SearchTest extends TestCase
     public function assert_not_synced_to_passes_if_callback_returns_false_and_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -915,7 +1174,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -941,7 +1200,7 @@ class SearchTest extends TestCase
     public function assert_synced_times_passes_if_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -960,7 +1219,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -977,7 +1236,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -999,7 +1258,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1018,7 +1277,7 @@ class SearchTest extends TestCase
     public function assert_synced_times_passes_if_callback_returns_true_and_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1052,7 +1311,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'bar']);
@@ -1080,7 +1339,7 @@ class SearchTest extends TestCase
     public function assert_synced_times_to_passes_if_records_exists_in_history()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1097,7 +1356,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1115,7 +1374,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1137,7 +1396,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1157,7 +1416,7 @@ class SearchTest extends TestCase
     public function assert_synced_times_to_passes_if_callback_returns_true_and_records_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'bar']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1191,7 +1450,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $model = new SearchableModel(['scoutKey' => 123, 'foo' => 'baz']);
         $model2 = new SearchableModel(['scoutKey' => 234, 'foo' => 'baz']);
@@ -1213,7 +1472,7 @@ class SearchTest extends TestCase
     public function assert_nothing_synced_passes_if_no_records_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $result = $search->assertNothingSynced();
 
@@ -1226,7 +1485,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -1237,7 +1496,7 @@ class SearchTest extends TestCase
     public function assert_nothing_synced_to_passes_if_no_records_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -1252,7 +1511,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
@@ -1263,7 +1522,7 @@ class SearchTest extends TestCase
     public function assert_index_exists_passes_if_index_exists()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->createIndex('test2');
         $store->createIndex('test');
@@ -1277,7 +1536,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->createIndex('test2');
 
@@ -1288,7 +1547,7 @@ class SearchTest extends TestCase
     public function assert_index_not_exists_passes_if_index_does_not_exist()
     {
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->createIndex('test2');
 
@@ -1301,7 +1560,7 @@ class SearchTest extends TestCase
         $this->expectException(AssertionFailedError::class);
 
         $store = new ArrayStore;
-        $search = new Search($store);
+        $search = new Search(new ArrayEngine($store));
 
         $store->createIndex('test2');
         $store->createIndex('test');
