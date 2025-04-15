@@ -139,10 +139,15 @@ class ArrayEngine extends Engine
         }
 
         $match = function ($record, $key, $value) {
+            $recordValue = data_get($record, $key);
             if (is_array($value)) {
-                return in_array(data_get($record, $key), $value, true);
+                if (is_array($recordValue)) {
+                    return count(array_diff($value, $recordValue)) === 0 && count(array_diff($recordValue, $value)) === 0;
+                }
+                return in_array($recordValue, $value, true);
             }
-            return data_get($record, $key) === $value;
+
+            return $recordValue === $value;
         };
 
         $match = Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
@@ -289,7 +294,8 @@ class ArrayEngine extends Engine
         );
 
         return $this->constrainForSoftDeletes(
-            $builder, $this->addAdditionalConstraints($builder, $query->take($builder->limit))
+            $builder,
+            $this->addAdditionalConstraints($builder, $query->take($builder->limit))
         );
     }
 }
