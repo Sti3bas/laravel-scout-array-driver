@@ -109,6 +109,66 @@ class ArrayEngineTest extends TestCase
     }
 
     /** @test */
+    public function it_can_filter_using_where_in_with_array_intersection()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['id' => 1, 'tags' => ['php', 'laravel'], 'scoutKey' => 1]),
+            new SearchableModel(['id' => 2, 'tags' => ['javascript', 'vue'], 'scoutKey' => 2]),
+            new SearchableModel(['id' => 3, 'tags' => ['php', 'symfony'], 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereIns = [
+            'tags' => ['php'],
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([3, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    /** @test */
+    public function it_can_filter_using_where_not_in_with_array_values()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['id' => 1, 'tags' => ['php', 'laravel'], 'scoutKey' => 1]),
+            new SearchableModel(['id' => 2, 'tags' => ['javascript', 'vue'], 'scoutKey' => 2]),
+            new SearchableModel(['id' => 3, 'tags' => ['php', 'symfony'], 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereNotIns = [
+            'tags' => ['javascript'],
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([3, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    /** @test */
+    public function it_can_filter_using_where_in_with_single_value_against_array()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['id' => 1, 'category' => 'php', 'scoutKey' => 1]),
+            new SearchableModel(['id' => 2, 'category' => 'javascript', 'scoutKey' => 2]),
+            new SearchableModel(['id' => 3, 'category' => 'php', 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereIns = [
+            'category' => ['php'],
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([3, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    /** @test */
     public function custom_index_can_be_passed()
     {
         $engine = new ArrayEngine(new ArrayStore());
