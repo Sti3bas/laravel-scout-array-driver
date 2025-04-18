@@ -112,7 +112,7 @@ class ArrayEngine extends Engine
                 $this->matchesFilters($record, $builder->whereIns) &&
                 $this->matchesFilters($record, data_get($builder, 'whereNotIns', []), true) &&
                 !empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                    return !$builder->query || stripos($value, $builder->query) !== false;
+                    return !$builder->query || stripos((string) $value, $builder->query) !== false;
                 }));
         }, true);
 
@@ -142,7 +142,7 @@ class ArrayEngine extends Engine
             $recordValue = data_get($record, $key);
             if (is_array($value)) {
                 if (is_array($recordValue)) {
-                    return count(array_diff($value, $recordValue)) === 0 && count(array_diff($recordValue, $value)) === 0;
+                    return count(array_intersect($recordValue, $value)) > 0;
                 }
                 return in_array($recordValue, $value, true);
             }
