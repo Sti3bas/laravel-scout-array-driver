@@ -457,6 +457,46 @@ class ArrayEngineTest extends TestCase
     }
 
     /** @test */
+    public function it_can_be_filtered_using_where_in_array()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'x' => ['x', 'y'], 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'x' => ['x'], 'scoutKey' => 2]),
+            new SearchableModel(['foo' => 'bax', 'x' => ['z'], 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereIns = [
+            'x' => ['x', 'y']
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([2, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    /** @test */
+    public function it_can_be_filtered_using_where_in_collection()
+    {
+        $engine = new ArrayEngine(new ArrayStore());
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'x' => collect(['x', 'y']), 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'x' => collect(['x']), 'scoutKey' => 2]),
+            new SearchableModel(['foo' => 'bax', 'x' => collect(['z']), 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel(), null);
+        $builder->whereIns = [
+            'x' => ['x', 'y']
+        ];
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([2, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    /** @test */
     public function it_can_be_filtered_using_where_not_in()
     {
         $engine = new ArrayEngine(new ArrayStore());
