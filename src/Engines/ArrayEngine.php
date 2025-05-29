@@ -140,7 +140,19 @@ class ArrayEngine extends Engine
 
         $match = function ($record, $key, $value) {
             if (is_array($value)) {
-                return in_array(data_get($record, $key), $value, true);
+                $needle = data_get($record, $key);
+
+                if (is_array($needle)) {
+                    return !empty(array_intersect($needle, $value));
+                }
+
+                if ($needle instanceof Collection) {
+                    return $needle->contains(function ($item) use ($value) {
+                        return in_array($item, $value, true);
+                    });
+                }
+
+                return in_array($needle, $value, true);
             }
             return data_get($record, $key) === $value;
         };
