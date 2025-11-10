@@ -25,10 +25,16 @@ class ArrayEngine extends Engine
      */
     protected $softDelete;
 
+    /**
+     * @var Collection
+     */
+    protected $searchResponseMocks;
+
     public function __construct($store, $softDelete = false)
     {
         $this->store = $store;
         $this->softDelete = $softDelete;
+        $this->searchResponseMocks = collect();
     }
 
     /**
@@ -118,10 +124,16 @@ class ArrayEngine extends Engine
 
         $matches = Collection::make($matches);
 
-        return [
+        $searchResponseMock = $this->searchResponseMocks->first(function ($mock) use ($builder, $index) {
+            return $mock->matches($builder) && (($mock->fakeBuilder->index == '*') || ($index == $mock->fakeBuilder->index));
+        });
+
+        $response = [
             'hits' => (isset($options['perPage']) ? $matches->slice((($options['page'] ?? 1) - 1) * $options['perPage'], $options['perPage']) : $matches)->values()->all(),
             'total' => $matches->count(),
         ];
+
+        return $searchResponseMock ? $searchResponseMock->toArray($response) : $response;
     }
 
     /**
@@ -303,5 +315,10 @@ class ArrayEngine extends Engine
         return $this->constrainForSoftDeletes(
             $builder, $this->addAdditionalConstraints($builder, $query->take($builder->limit))
         );
+    }
+
+    public function addSearchResponseMock($mock)
+    {
+        $this->searchResponseMocks->add($mock);
     }
 }

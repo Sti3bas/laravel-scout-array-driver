@@ -20,11 +20,11 @@ class ScoutArrayEngineServiceProvider extends ServiceProvider
         });
 
         $this->app[EngineManager::class]->extend('array', function ($app) {
-            return new ArrayEngine($this->app[ArrayStore::class], config('scout.soft_delete'));
+            return new ArrayEngine($app[ArrayStore::class], config('scout.soft_delete'));
         });
 
         $this->app->bind(Search::class, function () {
-            return new Search($this->app[ArrayStore::class]);
+            return new Search($this->app[EngineManager::class]->engine('array'));
         });
     }
 }
