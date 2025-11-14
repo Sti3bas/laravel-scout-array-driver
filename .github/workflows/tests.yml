@@ -4,36 +4,35 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
 
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
-        php: [8.3, 8.2, 8.1, 8.0]
-        laravel: ['9.*', '10.*', '11.*', '12.*']
-        dependency-version: [prefer-lowest, prefer-stable]
+        php: [8.1, 8.2, 8.3]
+        laravel: [10, 11, 12]
+        include:
+          - php: 8.4
+            laravel: 11
+          - php: 8.4
+            laravel: 12
+          - php: 8.2
+            laravel: 9
+          - php: 8.1
+            laravel: 9
+          - php: "8.0"
+            laravel: 9
         exclude:
-          - laravel: 11.*
-            php: 8.1
-          - laravel: 11.*
-            php: 8.0
-          - laravel: 10.*
-            php: 8.0
-          - laravel: 9.*
-            php: 8.3
-          - laravel: 9.*
-            php: 8.2
-          - laravel: 12.*
-            php: 8.1
-          - laravel: 12.*
-            php: 8.0
+          - php: 8.1
+            laravel: 11
+          - php: 8.1
+            laravel: 12
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
@@ -49,8 +48,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/bus:${{ matrix.laravel }}" "illuminate/contracts:${{ matrix.laravel }}" "illuminate/database:${{ matrix.laravel }}" "illuminate/http:${{ matrix.laravel }}" "illuminate/pagination:${{ matrix.laravel }}" "illuminate/queue:${{ matrix.laravel }}" "illuminate/support:${{ matrix.laravel }}" --no-interaction --no-update
-          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress --with="illuminate/contracts:^${{ matrix.laravel }}"
 
       - name: Execute tests
         run: vendor/bin/phpunit
