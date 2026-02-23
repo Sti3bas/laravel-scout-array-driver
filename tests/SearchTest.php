@@ -454,7 +454,7 @@ class SearchTest extends TestCase
 
         $store->set('test', 'test', ['foo' => 'bar']);
 
-        $result = $search->assertCountIn('test2',1);
+        $result = $search->assertCountIn('test2', 1);
     }
 
     public function test_assert_count_in_passes_if_record_exists()

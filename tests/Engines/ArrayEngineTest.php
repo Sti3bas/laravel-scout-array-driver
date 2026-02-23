@@ -39,7 +39,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_search_for_the_records()
     {
-        $store = new ArrayStore();
+        $store = new ArrayStore;
         $engine = new ArrayEngine($store);
         $engine->update(Collection::make([
             new SearchableModel(['id' => 1, 'foo' => 'bar', 'scoutKey' => '1']),
@@ -48,7 +48,7 @@ class ArrayEngineTest extends TestCase
             new SearchableModel(['id' => 4, 'foo' => ['test' => 'barbaz'], 'scoutKey' => '4']),
         ]));
 
-        $store->mock((new SearchableModel())->searchableAs(), '4', [
+        $store->mock((new SearchableModel)->searchableAs(), '4', [
             'test' => 'foo',
         ]);
 
@@ -63,7 +63,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_returns_all_results_if_no_query_provided()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['id' => 1, 'foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['id' => 2, 'foo' => 'baz', 'scoutKey' => 2]),
@@ -78,7 +78,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_search_results_can_be_limited()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['id' => 1, 'foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['id' => 2, 'foo' => 'baz', 'scoutKey' => 2]),
@@ -96,7 +96,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_returns_empty_array_if_no_results_found()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
 
         $results = $engine->search(new Builder(new SearchableModel, 'test'));
 
@@ -106,7 +106,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_custom_index_can_be_passed()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
         ]));
@@ -137,7 +137,7 @@ class ArrayEngineTest extends TestCase
         $model = new SearchableModel(['id' => 123, 'foo' => 'bar', 'scoutKey' => 'test']);
         $model->withScoutMetadata('meta', 'test');
 
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([$model]));
 
         $builder = new Builder(new SearchableModel, '');
@@ -161,7 +161,7 @@ class ArrayEngineTest extends TestCase
         $model->deleted_at = '2019-01-01 12:00:00';
         $model2 = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 234]);
 
-        $engine = new ArrayEngine(new ArrayStore(), $softDeletesEnabled = true);
+        $engine = new ArrayEngine(new ArrayStore, $softDeletesEnabled = true);
         $engine->update(Collection::make([$model, $model2]));
 
         $builder1 = new Builder(new SoftDeletableSearchableModel, '');
@@ -185,7 +185,7 @@ class ArrayEngineTest extends TestCase
         $model->deleted_at = '2019-01-01 12:00:00';
         $model2 = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 234]);
 
-        $engine = new ArrayEngine(new ArrayStore(), $softDeletesEnabled = false);
+        $engine = new ArrayEngine(new ArrayStore, $softDeletesEnabled = false);
         $engine->update(Collection::make([$model, $model2]));
 
         $builder1 = new Builder(new SoftDeletableSearchableModel, '');
@@ -206,7 +206,7 @@ class ArrayEngineTest extends TestCase
     {
         $model = new EmptySearchableModel(['scoutKey' => 123]);
 
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([$model]));
 
         $builder = new Builder(new EmptySearchableModel, '');
@@ -223,7 +223,7 @@ class ArrayEngineTest extends TestCase
         $model2 = new SearchableModel(['scoutKey' => 2]);
         $model3 = new SearchableModel(['scoutKey' => 3]);
 
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([$model1, $model2, $model3]));
 
         $builder = new Builder(new SearchableModel, '');
@@ -240,7 +240,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_paginate_results()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 2]),
@@ -252,7 +252,7 @@ class ArrayEngineTest extends TestCase
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 8]),
         ]));
 
-        $results = $engine->paginate(new Builder(new SearchableModel(), 'bar'), 2, 3);
+        $results = $engine->paginate(new Builder(new SearchableModel, 'bar'), 2, 3);
 
         $this->assertCount(2, $results['hits']);
         $this->assertEquals(8, $results['total']);
@@ -262,14 +262,14 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_filter_paginated_results()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), 'bar');
+        $builder = new Builder(new SearchableModel, 'bar');
         $builder->wheres = [
             'foo' => 'bar',
         ];
@@ -283,14 +283,14 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_map_ids()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bar', 'scoutKey' => 3]),
         ]));
 
-        $results = $engine->search(new Builder(new SearchableModel(), 'bar'));
+        $results = $engine->search(new Builder(new SearchableModel, 'bar'));
 
         $ids = $engine->mapIds($results);
 
@@ -300,7 +300,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_map_records_to_models()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $model = Mockery::mock(stdClass::class);
         $model->shouldReceive('getScoutModelsByIds')->andReturn($models = Collection::make([
             $model3 = new SearchableModel(['scoutKey' => 3]),
@@ -322,7 +322,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_returns_empty_collection_if_no_results_when_mapping()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
 
         $results = $engine->map(new Builder(new SearchableModel, ''), ['hits' => []], new SearchableModel);
 
@@ -332,7 +332,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_lazy_map_records_to_models()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
 
         $model = Mockery::mock(stdClass::class);
         $model->shouldReceive('queryScoutModelsByIds->cursor')->andReturn($models = LazyCollection::make([
@@ -359,7 +359,7 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_returns_empty_lazy_collection_if_no_results_when_lazy_mapping()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
 
         $results = $engine->lazyMap(new Builder(new SearchableModel, ''), ['hits' => []], new SearchableModel);
 
@@ -369,14 +369,14 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_knows_total_count()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
 
         $this->assertEquals(100, $engine->getTotalCount(['total' => 100]));
     }
 
     public function test_it_can_flush_all_models_records()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             $model1 = new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
             $model2 = new SearchableModel(['foo' => 'bar', 'scoutKey' => 2]),
@@ -390,21 +390,21 @@ class ArrayEngineTest extends TestCase
 
         $this->assertCount(3, $engine->search($builder)['hits']);
 
-        $engine->flush(new SearchableModel());
+        $engine->flush(new SearchableModel);
 
         $this->assertCount(0, $engine->search($builder)['hits']);
     }
 
     public function test_it_can_be_filtered_using_wheres()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bar', 'x' => 'z', 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), null);
+        $builder = new Builder(new SearchableModel, null);
         $builder->wheres = [
             'foo' => 'baz',
             'x' => 'x',
@@ -417,17 +417,17 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_be_filtered_using_where_in()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bax', 'x' => 'z', 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), null);
+        $builder = new Builder(new SearchableModel, null);
         $builder->whereIns = [
             'foo' => ['baz'],
-            'x' => ['x', 'y']
+            'x' => ['x', 'y'],
         ];
         $results = $engine->search($builder);
 
@@ -437,16 +437,16 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_be_filtered_using_where_in_array()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'x' => ['x', 'y'], 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'x' => ['x'], 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bax', 'x' => ['z'], 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), null);
+        $builder = new Builder(new SearchableModel, null);
         $builder->whereIns = [
-            'x' => ['x', 'y']
+            'x' => ['x', 'y'],
         ];
         $results = $engine->search($builder);
 
@@ -456,16 +456,16 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_be_filtered_using_where_in_collection()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'x' => collect(['x', 'y']), 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'x' => collect(['x']), 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bax', 'x' => collect(['z']), 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), null);
+        $builder = new Builder(new SearchableModel, null);
         $builder->whereIns = [
-            'x' => ['x', 'y']
+            'x' => ['x', 'y'],
         ];
         $results = $engine->search($builder);
 
@@ -475,17 +475,17 @@ class ArrayEngineTest extends TestCase
 
     public function test_it_can_be_filtered_using_where_not_in()
     {
-        $engine = new ArrayEngine(new ArrayStore());
+        $engine = new ArrayEngine(new ArrayStore);
         $engine->update(Collection::make([
             new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
             new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
             new SearchableModel(['foo' => 'bax', 'x' => 'z', 'scoutKey' => 3]),
         ]));
 
-        $builder = new Builder(new SearchableModel(), null);
+        $builder = new Builder(new SearchableModel, null);
         $builder->whereNotIns = [
             'foo' => ['baz'],
-            'x' => ['x', 'y']
+            'x' => ['x', 'y'],
         ];
         $results = $engine->search($builder);
 

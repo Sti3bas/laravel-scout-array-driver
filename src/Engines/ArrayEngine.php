@@ -34,7 +34,7 @@ class ArrayEngine extends Engine
     /**
      * Update the given model in the index.
      *
-     * @param Collection $models
+     * @param  Collection  $models
      * @return void
      */
     public function update($models)
@@ -58,7 +58,7 @@ class ArrayEngine extends Engine
     /**
      * Remove the given model from the index.
      *
-     * @param Collection $models
+     * @param  Collection  $models
      * @return void
      */
     public function delete($models)
@@ -84,8 +84,8 @@ class ArrayEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param int $perPage
-     * @param int $page
+     * @param  int  $perPage
+     * @param  int  $page
      * @return mixed
      */
     public function paginate(Builder $builder, $perPage, $page)
@@ -111,8 +111,8 @@ class ArrayEngine extends Engine
             return $this->matchesFilters($record, $builder->wheres) &&
                 $this->matchesFilters($record, $builder->whereIns) &&
                 $this->matchesFilters($record, data_get($builder, 'whereNotIns', []), true) &&
-                !empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                    return !$builder->query || stripos($value, $builder->query) !== false;
+                ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
+                    return ! $builder->query || stripos($value, $builder->query) !== false;
                 }));
         }, true);
 
@@ -127,9 +127,9 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given record matches given filters.
      *
-     * @param array $record
-     * @param array $filters
-     * @param bool $not
+     * @param  array  $record
+     * @param  array  $filters
+     * @param  bool  $not
      * @return bool
      */
     private function matchesFilters($record, $filters, $not = false)
@@ -143,7 +143,7 @@ class ArrayEngine extends Engine
                 $needle = data_get($record, $key);
 
                 if (is_array($needle)) {
-                    return !empty(array_intersect($needle, $value));
+                    return ! empty(array_intersect($needle, $value));
                 }
 
                 if ($needle instanceof Collection) {
@@ -154,6 +154,7 @@ class ArrayEngine extends Engine
 
                 return in_array($needle, $value, true);
             }
+
             return data_get($record, $key) === $value;
         };
 
@@ -172,13 +173,13 @@ class ArrayEngine extends Engine
             return $match($record, $key, $value);
         });
 
-        return $not ? !$match : $match;
+        return $not ? ! $match : $match;
     }
 
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param mixed $results
+     * @param  mixed  $results
      * @return \Illuminate\Support\Collection
      */
     public function mapIds($results)
@@ -189,8 +190,8 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param mixed $results
-     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param  mixed  $results
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return Collection
      */
     public function map(Builder $builder, $results, $model)
@@ -213,8 +214,8 @@ class ArrayEngine extends Engine
     /**
      * Map the given results to instances of the given model via a lazy collection.
      *
-     * @param mixed $results
-     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param  mixed  $results
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return \Illuminate\Support\LazyCollection
      */
     public function lazyMap(Builder $builder, $results, $model)
@@ -239,7 +240,7 @@ class ArrayEngine extends Engine
     /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param mixed $results
+     * @param  mixed  $results
      * @return int
      */
     public function getTotalCount($results)
@@ -250,7 +251,7 @@ class ArrayEngine extends Engine
     /**
      * Flush all of the model's records from the engine.
      *
-     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return void
      */
     public function flush($model)
@@ -261,7 +262,7 @@ class ArrayEngine extends Engine
     /**
      * Create a search index.
      *
-     * @param string $name
+     * @param  string  $name
      * @return mixed
      */
     public function createIndex($name, array $options = [])
@@ -272,7 +273,7 @@ class ArrayEngine extends Engine
     /**
      * Delete a search index.
      *
-     * @param string $name
+     * @param  string  $name
      * @return mixed
      */
     public function deleteIndex($name)
@@ -283,7 +284,7 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given model uses soft deletes.
      *
-     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return bool
      */
     protected function usesSoftDelete($model)
