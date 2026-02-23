@@ -2,6 +2,7 @@
 
 namespace Sti3bas\ScoutArray\Tests\Engines;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\LazyCollection;
@@ -37,7 +38,7 @@ class ArrayEngineTest extends TestCase
         parent::tearDown();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_search_for_the_records()
     {
         $store = new ArrayStore();
@@ -62,7 +63,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(['id' => 1, 'foo' => 'bar', 'objectID' => '1', 'scoutKey' => '1'], $results['hits'][2]);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_all_results_if_no_query_provided()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -78,7 +79,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(3, $results['total']);
     }
 
-    /** @test */
+    #[Test]
     public function search_results_can_be_limited()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -97,7 +98,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(3, $results['total']);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_array_if_no_results_found()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -108,7 +109,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(0, $results['total']);
     }
 
-    /** @test */
+    #[Test]
     public function custom_index_can_be_passed()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -137,7 +138,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(2, $results['hits'][0]['objectID']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_update_a_record_in_the_index()
     {
         $model = new SearchableModel(['id' => 123, 'foo' => 'bar', 'scoutKey' => 'test']);
@@ -160,7 +161,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(['id' => 123, 'foo' => 'baz', 'objectID' => 'test', 'meta' => 'test', 'scoutKey' => 'test'], $engine->search($builder)['hits'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_update_soft_deletable_records_in_the_index()
     {
         $model = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 123]);
@@ -185,7 +186,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234, '__soft_deleted' => 0], $engine->search($builder2)['hits'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function it_will_not_push_soft_delete_metadata_when_updating_if_its_not_enabled()
     {
         $model = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 123]);
@@ -210,7 +211,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234], $engine->search($builder2)['hits'][0]);
     }
 
-    /** @test */
+    #[Test]
     public function it_will_not_update_empty_records_in_the_index()
     {
         $model = new EmptySearchableModel(['scoutKey' => 123]);
@@ -226,7 +227,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEmpty($engine->search($builder)['hits']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_a_record_from_the_index()
     {
         $model1 = new SearchableModel(['scoutKey' => 1]);
@@ -248,7 +249,7 @@ class ArrayEngineTest extends TestCase
         $this->assertCount(0, $engine->search($builder)['hits']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_paginate_results()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -271,7 +272,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(3, $results['hits'][1]['scoutKey']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_filter_paginated_results()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -293,7 +294,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(1, $results['hits'][1]['scoutKey']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_map_ids()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -311,7 +312,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals([3, 2, 1], $engine->mapIds($results)->all());
     }
 
-    /** @test */
+    #[Test]
     public function it_can_map_records_to_models()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -334,7 +335,7 @@ class ArrayEngineTest extends TestCase
         $this->assertTrue($results[2]->is($model3));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_collection_if_no_results_when_mapping()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -345,7 +346,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(0, count($results));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_lazy_map_records_to_models()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -373,7 +374,7 @@ class ArrayEngineTest extends TestCase
         $this->assertTrue($results->all()[2]->is($model3));
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_empty_lazy_collection_if_no_results_when_lazy_mapping()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -384,7 +385,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(0, count($results));
     }
 
-    /** @test */
+    #[Test]
     public function it_knows_total_count()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -392,7 +393,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(100, $engine->getTotalCount(['total' => 100]));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_flush_all_models_records()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -414,7 +415,7 @@ class ArrayEngineTest extends TestCase
         $this->assertCount(0, $engine->search($builder)['hits']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_using_wheres()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -435,7 +436,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_using_where_in()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -456,7 +457,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_using_where_in_array()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -476,7 +477,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals([2, 1], array_column($results['hits'], 'scoutKey'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_using_where_in_collection()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -496,7 +497,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals([2, 1], array_column($results['hits'], 'scoutKey'));
     }
 
-    /** @test */
+    #[Test]
     public function it_can_be_filtered_using_where_not_in()
     {
         $engine = new ArrayEngine(new ArrayStore());
@@ -518,7 +519,7 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(1, $results['hits'][1]['scoutKey']);
     }
 
-    /** @test */
+    #[Test]
     public function it_can_create_search_index()
     {
         $store = Mockery::spy(ArrayStore::class);
@@ -530,7 +531,7 @@ class ArrayEngineTest extends TestCase
         $store->shouldHaveReceived('createIndex')->with('test')->once();
     }
 
-    /** @test */
+    #[Test]
     public function it_can_delete_search_index()
     {
         $store = Mockery::spy(ArrayStore::class);
