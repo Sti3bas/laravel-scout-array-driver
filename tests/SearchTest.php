@@ -9,7 +9,7 @@ use Sti3bas\ScoutArray\ArrayStore;
 use Sti3bas\ScoutArray\Search;
 use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 
-class SearchTest extends TestCase
+final class SearchTest extends TestCase
 {
     #[Test]
     public function it_can_fake_a_record(): void

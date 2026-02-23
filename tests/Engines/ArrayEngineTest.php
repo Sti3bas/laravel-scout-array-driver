@@ -16,7 +16,7 @@ use Sti3bas\ScoutArray\Tests\Fixtures\EmptySearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SearchableModel;
 use Sti3bas\ScoutArray\Tests\Fixtures\SoftDeletableSearchableModel;
 
-class ArrayEngineTest extends TestCase
+final class ArrayEngineTest extends TestCase
 {
     protected function setUp(): void
     {

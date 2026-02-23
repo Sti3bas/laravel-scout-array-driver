@@ -6,7 +6,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Orchestra\Testbench\TestCase;
 use Sti3bas\ScoutArray\ArrayStore;
 
-class ArrayStoreTest extends TestCase
+final class ArrayStoreTest extends TestCase
 {
     #[Test]
     public function it_can_set_and_get_a_record(): void
