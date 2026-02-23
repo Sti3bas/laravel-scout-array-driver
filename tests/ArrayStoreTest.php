@@ -7,8 +7,7 @@ use Sti3bas\ScoutArray\ArrayStore;
 
 class ArrayStoreTest extends TestCase
 {
-    /** @test */
-    public function it_can_set_and_get_a_record()
+    public function test_it_can_set_and_get_a_record()
     {
         $store = new ArrayStore();
 
@@ -21,8 +20,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(['foo' => 'bar', 'objectID' => 'key'], $store->get('test_index', 'key'));
     }
 
-    /** @test */
-    public function it_stores_a_record_in_history_when_setting_a_record()
+    public function test_it_stores_a_record_in_history_when_setting_a_record()
     {
         $store = new ArrayStore();
 
@@ -47,8 +45,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals('old', $historyRecords[1]['foo']);
     }
 
-    /** @test */
-    public function it_replaces_record_with_mock_when_getting_a_record()
+    public function test_it_replaces_record_with_mock_when_getting_a_record()
     {
         $store = new ArrayStore();
 
@@ -63,8 +60,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(['foo' => 'mocked', 'objectID' => 'key'], $store->get('test_index', 'key'));
     }
 
-    /** @test */
-    public function it_can_forget_a_record()
+    public function test_it_can_forget_a_record()
     {
         $store = new ArrayStore();
 
@@ -85,8 +81,7 @@ class ArrayStoreTest extends TestCase
         $this->assertNotNull($store->get('test_index2', 'key'));
     }
 
-    /** @test */
-    public function it_can_flush_all_records_for_the_index()
+    public function test_it_can_flush_all_records_for_the_index()
     {
         $store = new ArrayStore();
 
@@ -113,8 +108,7 @@ class ArrayStoreTest extends TestCase
         $this->assertNotNull($store->get('test_index2', 'key'));
     }
 
-    /** @test */
-    public function it_can_find_records()
+    public function test_it_can_find_records()
     {
         $store = new ArrayStore();
 
@@ -147,8 +141,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals('key1', $foundRecords[1]['objectID']);
     }
 
-    /** @test */
-    public function it_can_find_records_in_history()
+    public function test_it_can_find_records_in_history()
     {
         $store = new ArrayStore();
 
@@ -186,8 +179,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals('key1', $foundedRecords[2]['objectID']);
     }
 
-    /** @test */
-    public function it_can_count_all_records()
+    public function test_it_can_count_all_records()
     {
         $store = new ArrayStore();
 
@@ -218,8 +210,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(3, $store->count());
     }
 
-    /** @test */
-    public function it_can_count_records_in_the_given_index()
+    public function test_it_can_count_records_in_the_given_index()
     {
         $store = new ArrayStore();
 
@@ -250,8 +241,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(2, $store->count('test_index'));
     }
 
-    /** @test */
-    public function it_can_count_all_history_records()
+    public function test_it_can_count_all_history_records()
     {
         $store = new ArrayStore();
 
@@ -282,8 +272,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(4, $store->countInHistory());
     }
 
-    /** @test */
-    public function it_can_count_all_history_records_in_the_given_index()
+    public function test_it_can_count_all_history_records_in_the_given_index()
     {
         $store = new ArrayStore();
 
@@ -314,8 +303,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(3, $store->countInHistory('test_index'));
     }
 
-    /** @test */
-    public function it_can_mock_a_record()
+    public function test_it_can_mock_a_record()
     {
         $store = new ArrayStore();
         $store->set('test_index', 'key', [
@@ -331,8 +319,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals('mocked', $store->get('test_index', 'key')['foo']);
     }
 
-    /** @test */
-    public function it_can_replace_all_record_when_mocking_a_record()
+    public function test_it_can_replace_all_record_when_mocking_a_record()
     {
         $store = new ArrayStore();
         $store->set('test_index', 'key', [
@@ -347,8 +334,7 @@ class ArrayStoreTest extends TestCase
         $this->assertEquals(['foo' => 'mocked', 'objectID' => 'key'], $store->get('test_index', 'key'));
     }
 
-    /** @test */
-    public function it_can_create_search_index()
+    public function test_it_can_create_search_index()
     {
         $store = new ArrayStore();
 
@@ -359,8 +345,7 @@ class ArrayStoreTest extends TestCase
         $this->assertTrue($store->indexExists('test'));
     }
 
-    /** @test */
-    public function it_can_delete_search_index()
+    public function test_it_can_delete_search_index()
     {
         $store = new ArrayStore();
 
