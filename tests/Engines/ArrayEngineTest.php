@@ -39,7 +39,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_search_for_the_records()
+    public function it_can_search_for_the_records(): void
     {
         $store = new ArrayStore();
         $engine = new ArrayEngine($store);
@@ -64,7 +64,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_all_results_if_no_query_provided()
+    public function it_returns_all_results_if_no_query_provided(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -80,7 +80,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function search_results_can_be_limited()
+    public function search_results_can_be_limited(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -99,7 +99,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_empty_array_if_no_results_found()
+    public function it_returns_empty_array_if_no_results_found(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
 
@@ -110,7 +110,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function custom_index_can_be_passed()
+    public function custom_index_can_be_passed(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -139,7 +139,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_update_a_record_in_the_index()
+    public function it_can_update_a_record_in_the_index(): void
     {
         $model = new SearchableModel(['id' => 123, 'foo' => 'bar', 'scoutKey' => 'test']);
         $model->withScoutMetadata('meta', 'test');
@@ -162,7 +162,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_update_soft_deletable_records_in_the_index()
+    public function it_can_update_soft_deletable_records_in_the_index(): void
     {
         $model = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 123]);
         $model->setDateFormat('Y-m-d H:i:s');
@@ -187,7 +187,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_will_not_push_soft_delete_metadata_when_updating_if_its_not_enabled()
+    public function it_will_not_push_soft_delete_metadata_when_updating_if_its_not_enabled(): void
     {
         $model = new SoftDeletableSearchableModel(['foo' => 'bar', 'scoutKey' => 123]);
         $model->setDateFormat('Y-m-d H:i:s');
@@ -212,7 +212,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_will_not_update_empty_records_in_the_index()
+    public function it_will_not_update_empty_records_in_the_index(): void
     {
         $model = new EmptySearchableModel(['scoutKey' => 123]);
 
@@ -228,7 +228,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_delete_a_record_from_the_index()
+    public function it_can_delete_a_record_from_the_index(): void
     {
         $model1 = new SearchableModel(['scoutKey' => 1]);
         $model2 = new SearchableModel(['scoutKey' => 2]);
@@ -250,7 +250,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_paginate_results()
+    public function it_can_paginate_results(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -273,7 +273,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_filter_paginated_results()
+    public function it_can_filter_paginated_results(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -295,7 +295,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_map_ids()
+    public function it_can_map_ids(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -313,7 +313,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_map_records_to_models()
+    public function it_can_map_records_to_models(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $model = Mockery::mock(stdClass::class);
@@ -336,7 +336,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_empty_collection_if_no_results_when_mapping()
+    public function it_returns_empty_collection_if_no_results_when_mapping(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
 
@@ -347,7 +347,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_lazy_map_records_to_models()
+    public function it_can_lazy_map_records_to_models(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
 
@@ -375,7 +375,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_empty_lazy_collection_if_no_results_when_lazy_mapping()
+    public function it_returns_empty_lazy_collection_if_no_results_when_lazy_mapping(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
 
@@ -386,7 +386,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_knows_total_count()
+    public function it_knows_total_count(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
 
@@ -394,7 +394,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_flush_all_models_records()
+    public function it_can_flush_all_models_records(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -416,7 +416,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_filtered_using_wheres()
+    public function it_can_be_filtered_using_wheres(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -437,7 +437,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_filtered_using_where_in()
+    public function it_can_be_filtered_using_where_in(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -458,7 +458,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_filtered_using_where_in_array()
+    public function it_can_be_filtered_using_where_in_array(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -478,7 +478,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_filtered_using_where_in_collection()
+    public function it_can_be_filtered_using_where_in_collection(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -498,7 +498,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_be_filtered_using_where_not_in()
+    public function it_can_be_filtered_using_where_not_in(): void
     {
         $engine = new ArrayEngine(new ArrayStore());
         $engine->update(Collection::make([
@@ -520,7 +520,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_create_search_index()
+    public function it_can_create_search_index(): void
     {
         $store = Mockery::spy(ArrayStore::class);
 
@@ -532,7 +532,7 @@ class ArrayEngineTest extends TestCase
     }
 
     #[Test]
-    public function it_can_delete_search_index()
+    public function it_can_delete_search_index(): void
     {
         $store = Mockery::spy(ArrayStore::class);
 

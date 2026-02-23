@@ -9,7 +9,7 @@ use Sti3bas\ScoutArray\ArrayStore;
 class ArrayStoreTest extends TestCase
 {
     #[Test]
-    public function it_can_set_and_get_a_record()
+    public function it_can_set_and_get_a_record(): void
     {
         $store = new ArrayStore();
 
@@ -23,7 +23,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_stores_a_record_in_history_when_setting_a_record()
+    public function it_stores_a_record_in_history_when_setting_a_record(): void
     {
         $store = new ArrayStore();
 
@@ -49,7 +49,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_replaces_record_with_mock_when_getting_a_record()
+    public function it_replaces_record_with_mock_when_getting_a_record(): void
     {
         $store = new ArrayStore();
 
@@ -65,7 +65,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_forget_a_record()
+    public function it_can_forget_a_record(): void
     {
         $store = new ArrayStore();
 
@@ -87,7 +87,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_flush_all_records_for_the_index()
+    public function it_can_flush_all_records_for_the_index(): void
     {
         $store = new ArrayStore();
 
@@ -115,7 +115,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_find_records()
+    public function it_can_find_records(): void
     {
         $store = new ArrayStore();
 
@@ -149,7 +149,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_find_records_in_history()
+    public function it_can_find_records_in_history(): void
     {
         $store = new ArrayStore();
 
@@ -188,7 +188,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_count_all_records()
+    public function it_can_count_all_records(): void
     {
         $store = new ArrayStore();
 
@@ -220,7 +220,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_count_records_in_the_given_index()
+    public function it_can_count_records_in_the_given_index(): void
     {
         $store = new ArrayStore();
 
@@ -252,7 +252,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_count_all_history_records()
+    public function it_can_count_all_history_records(): void
     {
         $store = new ArrayStore();
 
@@ -284,7 +284,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_count_all_history_records_in_the_given_index()
+    public function it_can_count_all_history_records_in_the_given_index(): void
     {
         $store = new ArrayStore();
 
@@ -316,7 +316,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_mock_a_record()
+    public function it_can_mock_a_record(): void
     {
         $store = new ArrayStore();
         $store->set('test_index', 'key', [
@@ -333,7 +333,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_replace_all_record_when_mocking_a_record()
+    public function it_can_replace_all_record_when_mocking_a_record(): void
     {
         $store = new ArrayStore();
         $store->set('test_index', 'key', [
@@ -349,7 +349,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_create_search_index()
+    public function it_can_create_search_index(): void
     {
         $store = new ArrayStore();
 
@@ -361,7 +361,7 @@ class ArrayStoreTest extends TestCase
     }
 
     #[Test]
-    public function it_can_delete_search_index()
+    public function it_can_delete_search_index(): void
     {
         $store = new ArrayStore();
 
