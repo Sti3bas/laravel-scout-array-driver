@@ -139,6 +139,28 @@ class ArrayEngine extends Engine
         }
 
         $match = function ($record, $key, $value) {
+            if (is_array($key) && array_key_exists('field', $key)) {
+                $field = $key['field'] ?? null;
+                $operator = $key['operator'] ?? '=';
+                $value = $key['value'] ?? null;
+
+                if (! is_string($field)) {
+                    return false;
+                }
+
+                $actual = data_get($record, $field);
+
+                return match ($operator) {
+                    '=', '==' => $actual === $value,
+                    '!=' => $actual !== $value,
+                    '<' => $actual < $value,
+                    '>' => $actual > $value,
+                    '<=' => $actual <= $value,
+                    '>=' => $actual >= $value,
+                    default => $actual === $value,
+                };
+            }
+
             if (is_array($value)) {
                 $needle = data_get($record, $key);
 
@@ -159,6 +181,10 @@ class ArrayEngine extends Engine
         };
 
         $match = Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
+            if (is_array($value) && array_key_exists('field', $value)) {
+                return $match($record, $value, null);
+            }
+
             $keyExploded = explode('.', $key);
             if (count($keyExploded) > 1) {
                 if (data_get($record, $keyExploded[0]) instanceof Collection) {

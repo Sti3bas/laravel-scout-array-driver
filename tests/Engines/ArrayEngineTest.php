@@ -415,6 +415,25 @@ class ArrayEngineTest extends TestCase
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
     }
 
+    public function test_it_can_be_filtered_using_builder_where_method()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'x' => 'y', 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'x' => 'x', 'scoutKey' => 2]),
+            new SearchableModel(['foo' => 'bar', 'x' => 'z', 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('foo', 'baz');
+        $builder->where('x', 'x');
+
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
     public function test_it_can_be_filtered_using_where_in()
     {
         $engine = new ArrayEngine(new ArrayStore);
