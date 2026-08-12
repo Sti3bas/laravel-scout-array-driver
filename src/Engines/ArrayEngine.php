@@ -2,6 +2,7 @@
 
 namespace Sti3bas\ScoutArray\Engines;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
@@ -35,22 +36,22 @@ class ArrayEngine extends Engine
      * Update the given model in the index.
      *
      * @param  Collection  $models
-     * @return void
      */
-    public function update($models)
+    public function update($models): void
     {
         if ($this->usesSoftDelete($models->first()) && $this->softDelete) {
             $models->each->pushSoftDeleteMetadata();
         }
 
-        $models->each(function ($model) {
+        $models->each(function ($model): void {
             if (empty($searchableData = $model->toSearchableArray())) {
                 return;
             }
 
             $this->store->set($model->searchableAs(), $model->getScoutKey(), array_merge(
                 $searchableData,
-                $model->scoutMetadata()
+                $model->scoutMetadata(),
+                [$model->getScoutKeyName() => $model->getScoutKey()]
             ));
         });
     }
@@ -108,15 +109,27 @@ class ArrayEngine extends Engine
         $matches = $this->store->find($index, function ($record) use ($builder) {
             $values = new RecursiveIteratorIterator(new RecursiveArrayIterator($record));
 
-            return $this->matchesFilters($record, $builder->wheres) &&
-                $this->matchesFilters($record, $builder->whereIns) &&
-                $this->matchesFilters($record, data_get($builder, 'whereNotIns', []), true) &&
-                ! empty(array_filter(iterator_to_array($values, false), function ($value) use ($builder) {
-                    return ! $builder->query || stripos($value, $builder->query) !== false;
-                }));
+            return $this->matchesWheres($record, $builder->wheres)
+                && $this->matchesKeyValueFilters($record, $builder->whereIns)
+                && $this->matchesKeyValueFilters($record, $builder->whereNotIns, true)
+                && ! empty(array_filter(iterator_to_array($values, false), fn ($value) => ! $builder->query || stripos($value, $builder->query) !== false));
         }, true);
 
         $matches = Collection::make($matches);
+
+        if (! empty($builder->orders)) {
+            $matches = $matches->sort(function ($a, $b) use ($builder) {
+                foreach ($builder->orders as $order) {
+                    $comparison = data_get($a, $order['column']) <=> data_get($b, $order['column']);
+
+                    if ($comparison !== 0) {
+                        return $order['direction'] === 'desc' ? -$comparison : $comparison;
+                    }
+                }
+
+                return 0;
+            })->values();
+        }
 
         return [
             'hits' => (isset($options['perPage']) ? $matches->slice((($options['page'] ?? 1) - 1) * $options['perPage'], $options['perPage']) : $matches)->values()->all(),
@@ -127,60 +140,108 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given record matches given filters.
      *
-     * @param  array  $record
      * @param  array  $filters
      * @param  bool  $not
-     * @return bool
      */
-    private function matchesFilters($record, $filters, $not = false)
+    private function matchesWheres(array $record, array $wheres): bool
+    {
+        foreach ($wheres as $where) {
+            $value = data_get($record, $where['field']);
+
+            $matches = match ($where['operator']) {
+                '=' => $value === $where['value'],
+                '!=' => $value !== $where['value'],
+                '>' => $value > $where['value'],
+                '>=' => $value >= $where['value'],
+                '<' => $value < $where['value'],
+                '<=' => $value <= $where['value'],
+                default => $value === $where['value'],
+            };
+
+            if (! $matches) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function matchesKeyValueFilters(array $record, array $filters, bool $not = false): bool
     {
         if (empty($filters)) {
             return true;
         }
 
-        $match = function ($record, $key, $value) {
-            if (is_array($value)) {
-                $needle = data_get($record, $key);
+        $match = Collection::make($filters)->every(function ($value, $key) use ($record) {
+            $needle = $this->resolveDottedValue($record, $key);
 
-                if (is_array($needle)) {
-                    return ! empty(array_intersect($needle, $value));
-                }
-
-                if ($needle instanceof Collection) {
-                    return $needle->contains(function ($item) use ($value) {
-                        return in_array($item, $value, true);
-                    });
-                }
-
-                return in_array($needle, $value, true);
+            if (is_array($needle)) {
+                return ! empty(array_intersect($needle, $value));
             }
 
-            return data_get($record, $key) === $value;
-        };
-
-        $match = Collection::make($filters)->every(function ($value, $key) use ($match, $record) {
-            $keyExploded = explode('.', $key);
-            if (count($keyExploded) > 1) {
-                if (data_get($record, $keyExploded[0]) instanceof Collection) {
-                    return data_get($record, $keyExploded[0])->contains(function ($subRecord) use ($match, $keyExploded, $value) {
-                        return $match($subRecord, $keyExploded[1], $value);
-                    });
-                }
-
-                return $match($record, $keyExploded, $value);
-            }
-
-            return $match($record, $key, $value);
+            return in_array($needle, $value, true);
         });
 
         return $not ? ! $match : $match;
+    }
+
+    private function resolveDottedValue(array $record, string $key)
+    {
+        $direct = data_get($record, $key);
+
+        if ($direct instanceof Collection) {
+            $direct = $direct->all();
+        }
+
+        if ($direct !== null) {
+            return $direct;
+        }
+
+        $segments = explode('.', $key);
+        $current = $record;
+
+        foreach ($segments as $i => $segment) {
+            if ($current instanceof Collection) {
+                $current = $current->all();
+            }
+
+            if (is_array($current) && $this->isListArray($current)) {
+                $remaining = implode('.', array_slice($segments, $i));
+
+                return Collection::make($current)->map(fn ($item) => data_get($item, $remaining))->flatten()->all();
+            }
+
+            $current = data_get($current, $segment);
+
+            if ($current === null) {
+                return null;
+            }
+        }
+
+        if ($current instanceof Collection) {
+            $current = $current->all();
+        }
+
+        return $current;
+    }
+
+    /**
+     * Determine if the given array is a list (PHP 8.0–compatible array_is_list).
+     */
+    private function isListArray(array $array): bool
+    {
+        if ($array === []) {
+            return true;
+        }
+
+        return array_keys($array) === range(0, count($array) - 1);
     }
 
     /**
      * Pluck and return the primary keys of the given results.
      *
      * @param  mixed  $results
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function mapIds($results)
     {
@@ -191,7 +252,7 @@ class ArrayEngine extends Engine
      * Map the given results to instances of the given model.
      *
      * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @return Collection
      */
     public function map(Builder $builder, $results, $model)
@@ -215,8 +276,8 @@ class ArrayEngine extends Engine
      * Map the given results to instances of the given model via a lazy collection.
      *
      * @param  mixed  $results
-     * @param  \Illuminate\Database\Eloquent\Model  $model
-     * @return \Illuminate\Support\LazyCollection
+     * @param  Model  $model
+     * @return LazyCollection
      */
     public function lazyMap(Builder $builder, $results, $model)
     {
@@ -251,7 +312,7 @@ class ArrayEngine extends Engine
     /**
      * Flush all of the model's records from the engine.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @return void
      */
     public function flush($model)
@@ -284,7 +345,7 @@ class ArrayEngine extends Engine
     /**
      * Determine if the given model uses soft deletes.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @param  Model  $model
      * @return bool
      */
     protected function usesSoftDelete($model)
@@ -302,7 +363,8 @@ class ArrayEngine extends Engine
         );
 
         return $this->constrainForSoftDeletes(
-            $builder, $this->addAdditionalConstraints($builder, $query->take($builder->limit))
+            $builder,
+            $this->addAdditionalConstraints($builder, $query->take($builder->limit))
         );
     }
 }

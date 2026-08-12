@@ -29,10 +29,10 @@ class ArrayEngineTest extends TestCase
     protected function tearDown(): void
     {
         $this->addToAssertionCount(
-            \Mockery::getContainer()->mockery_getExpectationCount()
+            Mockery::getContainer()->mockery_getExpectationCount()
         );
 
-        \Mockery::close();
+        Mockery::close();
 
         parent::tearDown();
     }
@@ -141,17 +141,15 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([$model]));
 
         $builder = new Builder(new SearchableModel, '');
-        $builder->wheres = [
-            'id' => 123,
-        ];
+        $builder->where('scoutKey', 'test');
 
-        $this->assertEquals(['id' => 123, 'foo' => 'bar', 'objectID' => 'test', 'meta' => 'test', 'scoutKey' => 'test'], $engine->search($builder)['hits'][0]);
+        $this->assertEquals(['id' => 'test', 'foo' => 'bar', 'objectID' => 'test', 'meta' => 'test', 'scoutKey' => 'test'], $engine->search($builder)['hits'][0]);
 
         $model->foo = 'baz';
 
         $engine->update(Collection::make([$model]));
 
-        $this->assertEquals(['id' => 123, 'foo' => 'baz', 'objectID' => 'test', 'meta' => 'test', 'scoutKey' => 'test'], $engine->search($builder)['hits'][0]);
+        $this->assertEquals(['id' => 'test', 'foo' => 'baz', 'objectID' => 'test', 'meta' => 'test', 'scoutKey' => 'test'], $engine->search($builder)['hits'][0]);
     }
 
     public function test_it_can_update_soft_deletable_records_in_the_index()
@@ -165,17 +163,13 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([$model, $model2]));
 
         $builder1 = new Builder(new SoftDeletableSearchableModel, '');
-        $builder1->wheres = [
-            'scoutKey' => 123,
-        ];
+        $builder1->where('scoutKey', 123);
 
         $builder2 = new Builder(new SoftDeletableSearchableModel, '');
-        $builder2->wheres = [
-            'scoutKey' => 234,
-        ];
+        $builder2->where('scoutKey', 234);
 
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01 12:00:00', '__soft_deleted' => 1], $engine->search($builder1)['hits'][0]);
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234, '__soft_deleted' => 0], $engine->search($builder2)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'id' => 123, 'deleted_at' => '2019-01-01 12:00:00', '__soft_deleted' => 1], $engine->search($builder1)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234, 'id' => 234, '__soft_deleted' => 0], $engine->search($builder2)['hits'][0]);
     }
 
     public function test_it_will_not_push_soft_delete_metadata_when_updating_if_its_not_enabled()
@@ -189,17 +183,13 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([$model, $model2]));
 
         $builder1 = new Builder(new SoftDeletableSearchableModel, '');
-        $builder1->wheres = [
-            'scoutKey' => 123,
-        ];
+        $builder1->where('scoutKey', 123);
 
         $builder2 = new Builder(new SoftDeletableSearchableModel, '');
-        $builder2->wheres = [
-            'scoutKey' => 234,
-        ];
+        $builder2->where('scoutKey', 234);
 
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'deleted_at' => '2019-01-01 12:00:00'], $engine->search($builder1)['hits'][0]);
-        $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234], $engine->search($builder2)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '123', 'scoutKey' => 123, 'id' => 123, 'deleted_at' => '2019-01-01 12:00:00'], $engine->search($builder1)['hits'][0]);
+        $this->assertEquals(['foo' => 'bar', 'objectID' => '234', 'scoutKey' => 234, 'id' => 234], $engine->search($builder2)['hits'][0]);
     }
 
     public function test_it_will_not_update_empty_records_in_the_index()
@@ -210,9 +200,7 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([$model]));
 
         $builder = new Builder(new EmptySearchableModel, '');
-        $builder->wheres = [
-            'scoutKey' => 123,
-        ];
+        $builder->where('scoutKey', 123);
 
         $this->assertEmpty($engine->search($builder)['hits']);
     }
@@ -227,9 +215,7 @@ class ArrayEngineTest extends TestCase
         $engine->update(Collection::make([$model1, $model2, $model3]));
 
         $builder = new Builder(new SearchableModel, '');
-        $builder->wheres = [
-            'scoutKey' => 2,
-        ];
+        $builder->where('scoutKey', 2);
 
         $this->assertCount(1, $engine->search($builder)['hits']);
 
@@ -270,9 +256,7 @@ class ArrayEngineTest extends TestCase
         ]));
 
         $builder = new Builder(new SearchableModel, 'bar');
-        $builder->wheres = [
-            'foo' => 'bar',
-        ];
+        $builder->where('foo', 'bar');
 
         $results = $engine->paginate($builder, 2, 1);
 
@@ -384,9 +368,7 @@ class ArrayEngineTest extends TestCase
         ]));
 
         $builder = new Builder(new SearchableModel, '');
-        $builder->wheres = [
-            'foo' => 'bar',
-        ];
+        $builder->where('foo', 'bar');
 
         $this->assertCount(3, $engine->search($builder)['hits']);
 
@@ -405,14 +387,112 @@ class ArrayEngineTest extends TestCase
         ]));
 
         $builder = new Builder(new SearchableModel, null);
-        $builder->wheres = [
-            'foo' => 'baz',
-            'x' => 'x',
-        ];
+        $builder->where('foo', 'baz');
+        $builder->where('x', 'x');
         $results = $engine->search($builder);
 
         $this->assertCount(1, $results['hits']);
         $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
+    public function test_it_can_be_filtered_using_where_with_explicit_equals_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'scoutKey' => 2]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('foo', '=', 'baz');
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(2, $results['hits'][0]['scoutKey']);
+    }
+
+    public function test_it_can_be_filtered_using_where_with_not_equals_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]),
+            new SearchableModel(['foo' => 'baz', 'scoutKey' => 2]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('foo', '!=', 'baz');
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(1, $results['hits'][0]['scoutKey']);
+    }
+
+    public function test_it_can_be_filtered_using_where_with_greater_than_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 10, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 30, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('price', '>', 20);
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(3, $results['hits'][0]['scoutKey']);
+    }
+
+    public function test_it_can_be_filtered_using_where_with_greater_than_or_equal_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 10, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 30, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('price', '>=', 20);
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([3, 2], array_column($results['hits'], 'scoutKey'));
+    }
+
+    public function test_it_can_be_filtered_using_where_with_less_than_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 10, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 30, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('price', '<', 20);
+        $results = $engine->search($builder);
+
+        $this->assertCount(1, $results['hits']);
+        $this->assertEquals(1, $results['hits'][0]['scoutKey']);
+    }
+
+    public function test_it_can_be_filtered_using_where_with_less_than_or_equal_operator()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 10, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 30, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->where('price', '<=', 20);
+        $results = $engine->search($builder);
+
+        $this->assertCount(2, $results['hits']);
+        $this->assertEquals([2, 1], array_column($results['hits'], 'scoutKey'));
     }
 
     public function test_it_can_be_filtered_using_where_in()
@@ -492,6 +572,85 @@ class ArrayEngineTest extends TestCase
         $this->assertCount(2, $results['hits']);
         $this->assertEquals(3, $results['hits'][0]['scoutKey']);
         $this->assertEquals(1, $results['hits'][1]['scoutKey']);
+    }
+
+    public function test_it_can_order_results_ascending()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 30, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 10, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->orderBy('price', 'asc');
+        $results = $engine->search($builder);
+
+        $this->assertEquals([2, 3, 1], array_column($results['hits'], 'scoutKey'));
+    }
+
+    public function test_it_can_order_results_descending()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 30, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 10, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->orderBy('price', 'desc');
+        $results = $engine->search($builder);
+
+        $this->assertEquals([1, 3, 2], array_column($results['hits'], 'scoutKey'));
+    }
+
+    public function test_it_can_order_results_by_multiple_columns()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['category' => 'a', 'price' => 20, 'scoutKey' => 1]),
+            new SearchableModel(['category' => 'a', 'price' => 10, 'scoutKey' => 2]),
+            new SearchableModel(['category' => 'b', 'price' => 5, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->orderBy('category', 'asc');
+        $builder->orderBy('price', 'asc');
+        $results = $engine->search($builder);
+
+        $this->assertEquals([2, 1, 3], array_column($results['hits'], 'scoutKey'));
+    }
+
+    public function test_it_can_order_paginated_results()
+    {
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([
+            new SearchableModel(['price' => 30, 'scoutKey' => 1]),
+            new SearchableModel(['price' => 10, 'scoutKey' => 2]),
+            new SearchableModel(['price' => 20, 'scoutKey' => 3]),
+        ]));
+
+        $builder = new Builder(new SearchableModel, null);
+        $builder->orderBy('price', 'asc');
+        $results = $engine->paginate($builder, 2, 1);
+
+        $this->assertEquals(3, $results['total']);
+        $this->assertEquals([2, 3], array_column($results['hits'], 'scoutKey'));
+    }
+
+    public function test_it_includes_the_scout_key_name_field_in_the_indexed_record()
+    {
+        $model = Mockery::mock(new SearchableModel(['foo' => 'bar', 'scoutKey' => 1]))->makePartial();
+        $model->shouldReceive('getScoutKeyName')->andReturn('custom_key');
+
+        $engine = new ArrayEngine(new ArrayStore);
+        $engine->update(Collection::make([$model]));
+
+        $builder = new Builder(new SearchableModel, null);
+
+        $this->assertEquals(1, $engine->search($builder)['hits'][0]['custom_key']);
     }
 
     public function test_it_can_create_search_index()
